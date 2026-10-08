@@ -47,17 +47,18 @@ function pageInput(query) {
   const n = Number(q.get('n'));
   const dil = Number(q.get('diluent')) || 0;
   const typed = Number(q.get('typed')) || 0;
+  const cp07 = q.get('cp07') === '1';
   const pad = (v) => (typed && v.length < typed ? (v.includes('.') ? v : `${v}.`).padEnd(typed, '0') : v);
   return {
     dispensed: { value: pad('50'), unit: 'µL' }, residual: { value: pad('50'), unit: 'µL' },
     assayCells: { value: pad('1000000'), unit: 'cells' }, samples: '96',
-    overage: { form: 'dead-volume', value: pad('0'), unit: 'µL' }, basis: 'preserve-concentration',
+    overage: { form: 'dead-volume', value: pad('0'), unit: 'µL' }, basis: cp07 ? '' : 'preserve-concentration',
     diluent: dil ? { notRecorded: false, text: DILUENT_POOL.repeat(Math.ceil(dil / DILUENT_POOL.length)).slice(0, dil).trim() } : { notRecorded: true },
     minTransfer: { value: '2', unit: 'µL', defaulted: true }, capacity: { value: pad('1'), unit: 'mL' },
     components: Array.from({ length: n }, (_, i) => ({
       label: `${MARKERS[i % MARKERS.length]} ${FLUORS[(i * 7) % FLUORS.length]}`,
       intended: { value: i % 7 === 3 ? '0.001' : '0.05', unit: 'µg' }, stock: { value: '1', unit: 'mg/mL' },
-      establishedVolume: i % 5 === 1 ? { notRecorded: true } : { value: i % 3 === 0 ? '50' : '100', unit: 'µL' },
+      establishedVolume: i % 5 === 1 ? { notRecorded: true } : { value: !cp07 && i % 3 === 0 ? '50' : '100', unit: 'µL' },
       establishedCells: i % 6 === 2 ? { notRecorded: true } : { value: i % 4 === 0 ? '500000' : '1000000', unit: 'cells' },
       provenance: ['titrated-here', 'vendor', 'titrated-here', 'not-recorded', 'vendor'][i % 5],
     })),
@@ -89,6 +90,13 @@ const ALL_CASES = [
   { case: 'nine flags, diluent of 400 characters, every typed number 15 characters, N=40', query: 'n=40&diluent=400&typed=15' },
   // The maximum component count (Task 3 review, ruling 3). Permanent.
   { case: 'all ten flags, N=60', query: 'n=60' },
+  // The real page only: the C5-CP-07 statement in the block. Every recorded
+  // established volume equals the assay's, so FL-01 and FL-08 cannot co-occur
+  // with it; every other flag is raised.
+  ...(PAGE ? [
+    { case: 'C5-CP-07 statement in the block, eight flags, N=60', query: 'n=60&cp07=1' },
+    { case: 'C5-CP-07 statement in the block, seven flags, recorded diluent of 400 characters, N=60', query: 'n=60&cp07=1&diluent=400' },
+  ] : []),
 ];
 const queryArg = args.find((a) => a.startsWith('--query='));
 const CASES = NEGATIVE ? [{ case: 'NEGATIVE CONTROL: block not sticky, all ten flags, N=40', query: 'n=40' }]
@@ -144,6 +152,7 @@ try {
         layoutWidthPx: innerWidth,
         declarations: document.querySelectorAll('[data-decl]').length,
         flags: document.querySelectorAll('[data-flag]').length,
+        cp07Shown: !!document.querySelector('#bounded-block [data-decl="cp07"]'),
         components: document.querySelectorAll('#components-body tr').length,
       };
     });
@@ -218,8 +227,10 @@ try {
       violations,
     };
     // On the real page, the panel must have raised the flags the case is built for.
-    const expectedFlags = /diluent=/.test(c.query) ? 9 : 10;
-    if (PAGE && !NEGATIVE && !queryArg && m.flags !== expectedFlags) { line.flagsExpected = expectedFlags; failed = true; }
+    const withCp07 = /cp07=1/.test(c.query);
+    const expectedFlags = (withCp07 ? 8 : 10) - (/diluent=/.test(c.query) ? 1 : 0);
+    if (PAGE) line.cp07Shown = m.cp07Shown;
+    if (PAGE && !NEGATIVE && !queryArg && (m.flags !== expectedFlags || m.cp07Shown !== withCp07)) { line.flagsExpected = expectedFlags; line.cp07Expected = withCp07; failed = true; }
     if (violations.length || errors.length || m.horizontalOverflowPx > 0 || m.truncatedFields.length
       || m.blockHeightPx > BLOCK_BOUND_PX || slackAtWidthPx < MIN_SLACK_PX) failed = true;
     console.log(JSON.stringify(line));
