@@ -74,13 +74,19 @@ export function cp07Short(rec) {
 }
 
 // ---- below the component list ------------------------------------------------
+// Every raised flag in full (URS §8, human-readable output): the same words as
+// the bench sheet and the notebook copy (flags.flagTexts), each named component
+// with its own figures. The bounded block keeps the code and count only.
 export function flagNames(rec) {
   if (rec.status !== 'result') return '';
-  const lines = rec.flags.filter((f) => f.components.length).map((f) => `<p class="flag-names-line" data-component="names-${f.code}"><span class="code">${f.code}</span>${esc(f.components.map((i) => componentName(rec, i)).join('; '))}</p>`);
+  const blocks = flagTexts(rec).map((t) => `<div class="flag-statement" data-flag-statement="${t.code}"${t.code === 'C5-FL-08' ? ' data-component="names-C5-FL-08"' : ''}>`
+    + `<p class="flag-names-line"><span class="code">${t.code}</span><strong>${esc(t.title)}.</strong> ${esc(t.statement)}</p>`
+    + (t.components.length ? `<ul class="flag-components">${t.components.map((c) => `<li data-component="names-${t.code}-${c.component}">${esc(c.text)}</li>`).join('')}</ul>` : '')
+    + '</div>');
   if (rec.basisRequired === false && rec.values.fl08Unevaluated.length) {
-    lines.push(`<p class="flag-names-line" data-component="names-CP-07"><span class="code">C5-CP-07</span>The transfer basis cannot be applied (established staining volume not recorded): ${esc(rec.values.fl08Unevaluated.map((i) => componentName(rec, i)).join('; '))}</p>`);
+    blocks.push(`<p class="flag-names-line" data-component="names-CP-07"><span class="code">C5-CP-07</span>The transfer basis cannot be applied (established staining volume not recorded): ${esc(rec.values.fl08Unevaluated.map((i) => componentName(rec, i)).join('; '))}</p>`);
   }
-  return lines.join('');
+  return blocks.join('');
 }
 
 export function stateHtml(rec) {
@@ -127,7 +133,12 @@ export function pipettingHtml(rec) {
 }
 
 // ---- the derivation (C5-DT-02, C5-OUT-01, C5-OUT-02) ----------------------------------
-export function derivationHtml(rec) {
+/**
+ * `ui.retained`: the rows whose established values were set by the panel
+ * control and kept after it was unticked (C5-ST-07), from the form's state.
+ */
+export function derivationHtml(rec, ui = {}) {
+  const retained = new Set(ui.retained || []);
   const d = rec.declarations;
   const v = rec.values;
   const conc = concentrations(rec);
@@ -141,7 +152,7 @@ export function derivationHtml(rec) {
     h(`Assay cell number per test: ${typed(d.assayCells)}. Number of samples n: ${typed(d.samples)}.`),
     h(`Overage: ${d.overage.form ? OVERAGE[d.overage.form] : '—'}, ${d.overage.state === 'entered' ? `${d.overage.value}${d.overage.form === 'percentage' ? ' %' : d.overage.form === 'dead-volume' ? ` ${d.overage.unit}` : ''}` : '—'}.`),
     h(`Diluent: ${d.diluent.state === 'entered' ? d.diluent.text : 'not recorded'}. Minimum reliable transfer volume: ${typed(d.minTransfer)} (${d.minTransfer.source === 'defaulted' ? 'suggested default, not changed' : 'entered'}). Vessel working capacity: ${typed(d.capacity)}.`),
-    ...d.components.map((c) => ({ component: c.index, html: esc(`${componentName(rec, c.index)}: intended ${typed(c.intended)} per test; stock ${typed(c.stock)}; established at ${typed(c.establishedVolume)} and ${typed(c.establishedCells)}${c.declaredByPanelControl ? ' (declared through "All components established at these assay conditions")' : ''}; provenance ${PROVENANCE[c.provenance.value] || '—'}; transport ${c.transport}.`) })),
+    ...d.components.map((c) => ({ component: c.index, html: esc(`${componentName(rec, c.index)}: intended ${typed(c.intended)} per test; stock ${typed(c.stock)}; established at ${typed(c.establishedVolume)} and ${typed(c.establishedCells)}${c.declaredByPanelControl ? (retained.has(c.index) ? ' (set through "All components established at these assay conditions"; the control was later unticked, and the values are retained)' : ' (declared through "All components established at these assay conditions")') : ''}; provenance ${PROVENANCE[c.provenance.value] || '—'}; transport ${c.transport}.`) })),
   ]));
   const nEffRel = { percentage: `N_eff = n × (1 + p ÷ 100) = ${typed(d.samples)} × (1 + ${d.overage.value} ÷ 100)`, 'additional-tests': `N_eff = n + k = ${typed(d.samples)} + ${d.overage.value}`, 'dead-volume': `N_eff = n + V_dead ÷ D = ${typed(d.samples)} + ${typed(d.overage)} ÷ ${typed(d.dispensed)}` }[d.overage.form];
   const fracRel = { percentage: 'p ÷ 100', 'additional-tests': 'k ÷ n (additional tests ÷ samples)', 'dead-volume': 'V_dead ÷ (n × D)' }[d.overage.form];
@@ -210,7 +221,7 @@ export function notebookText(rec) {
   L.push(`  Volume already present with the cells: ${typed(d.residual)}`);
   L.push(`  Assay cell number per test: ${typed(d.assayCells)}`);
   L.push(`  Number of samples: ${typed(d.samples)}`);
-  L.push(`  Overage: ${d.overage.form ? OVERAGE[d.overage.form] : '—'}, ${typed(d.overage)}${d.overage.form === 'percentage' && d.overage.state === 'entered' ? ' %' : ''}`);
+  L.push(`  Overage: ${d.overage.form ? OVERAGE[d.overage.form] : '—'}, ${typed(d.overage)}`);
   L.push(`  Diluent: ${d.diluent.state === 'entered' ? d.diluent.text : 'not recorded'}`);
   L.push(`  Minimum reliable transfer volume: ${typed(d.minTransfer)} (${d.minTransfer.source === 'defaulted' ? 'suggested default, not changed' : 'entered'})`);
   L.push(`  Vessel working capacity: ${typed(d.capacity)}`);
@@ -258,7 +269,7 @@ export function benchSheetHtml(rec, visuals) {
     ['Present with cells (residual)', typed(d.residual)],
     ['Assay cells per test', typed(d.assayCells)],
     ['Samples', typed(d.samples)],
-    ['Overage', `${d.overage.form ? OVERAGE[d.overage.form] : '—'}, ${typed(d.overage)}${d.overage.form === 'percentage' && d.overage.state === 'entered' ? ' %' : ''}`],
+    ['Overage', `${d.overage.form ? OVERAGE[d.overage.form] : '—'}, ${typed(d.overage)}`],
     ['Diluent', d.diluent.state === 'entered' ? d.diluent.text : 'not recorded'],
     ['Minimum transfer', `${typed(d.minTransfer)} (${d.minTransfer.source === 'defaulted' ? 'suggested default' : 'entered'})`],
     ['Vessel capacity', typed(d.capacity)],
