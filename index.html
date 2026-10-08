@@ -27,14 +27,95 @@
 </head>
 <body>
 <div class="app">
-  <a class="skip-link" href="#main">Skip to content</a>
+  <a class="skip-link screen-only" href="#main">Skip to content</a>
   <header class="masthead" id="site-header"></header>
 
-  <div id="system-error" class="system-error" hidden role="alert"></div>
+  <div id="system-error" class="system-error screen-only" hidden role="alert"></div>
 
-  <main id="main">
-    <div class="layout">
-    <div class="stack">
+  <main id="main" class="screen-only">
+    <form id="mm-form" class="stack" autocomplete="off" novalidate>
+
+      <section class="panel" aria-labelledby="panel-heading">
+        <div class="panel-head"><div class="titles"><span class="step">1</span><h2 id="panel-heading">The assay and the cocktail</h2></div></div>
+        <div class="panel-body panel-grid" id="panel-fields"></div>
+      </section>
+
+      <section class="panel panel-series" aria-labelledby="components-heading">
+        <div class="panel-head">
+          <div class="titles"><span class="step">2</span><h2 id="components-heading">Components</h2></div>
+          <label class="panel-control"><input type="checkbox" id="panel-control" data-field="panelControl"> All components established at these assay conditions</label>
+        </div>
+        <div class="panel-body" id="kept-region">
+          <div class="series-sticky" id="bounded-block" aria-label="declarations and flags the result is computed under">
+            <div class="rail-declarations"><div id="declarations-content" class="declarations-content"></div></div>
+            <p id="cp07-statement" class="cp07" hidden></p>
+            <ul id="flag-summary" class="flag-summary flag-grid" aria-label="flags raised"></ul>
+          </div>
+          <table class="components" id="components">
+            <thead id="components-head"></thead>
+            <tbody id="components-body"></tbody>
+          </table>
+          <div class="add-row">
+            <button type="button" id="add-component">Add component</button>
+            <span id="cap-message" class="hint" role="status" aria-live="polite"></span>
+          </div>
+          <p id="panel-control-status" class="hint" aria-live="polite"></p>
+          <div id="state-region" aria-live="polite"></div>
+          <div class="subsection" id="flag-names" hidden>
+            <h3 class="sub-h">Components named by each flag</h3>
+            <div id="flag-names-body"></div>
+          </div>
+          <div id="outputs" hidden>
+            <div class="subsection">
+              <h3 class="sub-h">The cocktail</h3>
+              <div id="result-table"></div>
+            </div>
+            <div class="subsection">
+              <h3 class="sub-h">Pipetting list</h3>
+              <div id="pipetting-list"></div>
+            </div>
+            <div class="subsection visuals" id="visuals"></div>
+            <div class="subsection">
+              <h3 class="sub-h">Derivation</h3>
+              <div id="derivation" class="derivation"></div>
+            </div>
+            <div class="subsection">
+              <h3 class="sub-h">Bench sheet and notebook</h3>
+              <div class="button-row">
+                <button type="button" id="print-bench-sheet">Print bench sheet</button>
+                <button type="button" id="copy-notebook">Copy for notebook</button>
+              </div>
+              <p id="copy-status" class="hint" aria-live="polite" hidden></p>
+              <div id="notebook-fallback" hidden>
+                <p class="hint">Copy the text below into your notebook.</p>
+                <textarea id="notebook-text" rows="14" readonly class="num"></textarea>
+              </div>
+            </div>
+            <div class="subsection">
+              <h3 class="sub-h">Structured result</h3>
+              <p class="hint" id="object-hint"></p>
+              <details class="options"><summary>Show the object</summary><pre id="object-text"></pre></details>
+            </div>
+          </div>
+          <div id="keep-spacer" aria-hidden="true"></div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="statements-heading">
+        <div class="panel-head"><div class="titles"><h2 id="statements-heading">Scope, method and limits</h2></div></div>
+        <div class="panel-body prose" id="statements"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="register-heading">
+        <div class="panel-head"><div class="titles"><h2 id="register-heading">Constants and conventions</h2></div></div>
+        <div class="panel-body" id="register"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="failures-heading">
+        <div class="panel-head"><div class="titles"><h2 id="failures-heading">What this tool cannot detect</h2></div></div>
+        <div class="panel-body prose" id="failures"></div>
+      </section>
+
       <section class="panel" id="privacy" aria-labelledby="privacy-heading">
         <div class="panel-head">
           <div class="titles"><h2 id="privacy-heading">Privacy</h2></div>
@@ -42,9 +123,10 @@
         </div>
         <div class="panel-body prose" id="privacy-body"></div>
       </section>
-    </div>
-    </div>
+    </form>
   </main>
+
+  <section id="bench-sheet" class="bench-sheet print-only" aria-label="Bench sheet"></section>
 
   <footer class="site-footer" id="site-footer"></footer>
   <div class="colophon" id="colophon"></div>

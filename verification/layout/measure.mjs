@@ -20,6 +20,10 @@
 //     classic scrollbar (about 15 px) inside the 1366 px window.
 //   node verification/layout/measure.mjs --query=<mock query> [base]
 //     One ad-hoc case instead of the set, e.g. --query=n=40&diluent=2000.
+//   node verification/layout/measure.mjs --page [base]   default http://localhost:4175/
+//     The same cases on the real page (Task 8): each panel is entered through
+//     the page's own controls (verification/headless/fill.mjs), built to raise
+//     every flag the case names, and checked to have raised them.
 //   node verification/layout/measure.mjs --negative-control [base]
 //     Takes the block out of sticky positioning (through the CSSOM, which the
 //     CSP permits) and runs one case. It must report violations and exit 1;
@@ -28,7 +32,48 @@ import { chromium } from 'playwright';
 
 const args = process.argv.slice(2);
 const NEGATIVE = args.includes('--negative-control');
-const base = args.find((a) => !a.startsWith('--')) || 'http://localhost:4175/verification/layout/mock.html';
+const PAGE = args.includes('--page');
+const base = args.find((a) => !a.startsWith('--')) || (PAGE ? 'http://localhost:4175/' : 'http://localhost:4175/verification/layout/mock.html');
+const { fill } = PAGE ? await import('../headless/fill.mjs') : {};
+
+// The real page's synthetic panel, as the mock's: n components raising all ten
+// flags, or nine with a recorded diluent of `diluent` characters; `typed` pads
+// every typed panel number to that many characters.
+const MARKERS = ['CD3', 'CD4', 'CD8', 'CD45RA', 'CCR7', 'CD27', 'CD28', 'CD95', 'CD127', 'CD25', 'CXCR5', 'PD-1', 'ICOS', 'CD38', 'HLA-DR', 'CD14', 'CD16', 'CD56', 'CD19', 'CD20', 'IgD', 'CD24', 'CD11c', 'CD123', 'CD1c', 'CD141', 'TCRγδ', 'Vδ2', 'CD161', 'CCR6', 'CXCR3', 'CCR4', 'KLRG1', 'CD57', 'TIGIT', 'LAG-3', 'TIM-3', 'CD39', 'CD73', 'CD69', 'CD103', 'CD45', 'CD2', 'CD7', 'NKG2A', 'NKG2C', 'CD94', 'CD62L', 'CD31', 'IgM', 'IgG', 'CD10', 'CD21', 'CD86', 'CD80', 'CD40', 'FcεRI', 'CD117', 'CD34', 'Live/Dead'];
+const FLUORS = ['BUV395', 'BUV496', 'BUV563', 'BUV615', 'BUV661', 'BUV737', 'BUV805', 'BV421', 'Pacific Blue', 'BV480', 'BV510', 'BV570', 'BV605', 'BV650', 'BV711', 'BV750', 'BV785', 'BB515', 'Alexa Fluor 488', 'Spark Blue 550', 'PerCP', 'PerCP-eFluor 710', 'PE', 'PE-CF594', 'PE-Cy5', 'PE-Cy5.5', 'PE-Cy7', 'APC', 'Alexa Fluor 647', 'APC-R700', 'APC-Fire 750', 'APC-Cy7'];
+const DILUENT_POOL = 'PBS pH 7.4 with 2% heat-inactivated FBS, 2 mM EDTA and 0.1% sodium azide, with Brilliant Stain Buffer Plus at 1x and True-Stain Monocyte Blocker at 5 µL per test, filtered at 0.22 µm and kept at 4 °C; lot numbers recorded in the bench notebook for this run. ';
+function pageInput(query) {
+  const q = new URLSearchParams(query);
+  const n = Number(q.get('n'));
+  const dil = Number(q.get('diluent')) || 0;
+  const typed = Number(q.get('typed')) || 0;
+  const pad = (v) => (typed && v.length < typed ? (v.includes('.') ? v : `${v}.`).padEnd(typed, '0') : v);
+  return {
+    dispensed: { value: pad('50'), unit: 'µL' }, residual: { value: pad('50'), unit: 'µL' },
+    assayCells: { value: pad('1000000'), unit: 'cells' }, samples: '96',
+    overage: { form: 'dead-volume', value: pad('0'), unit: 'µL' }, basis: 'preserve-concentration',
+    diluent: dil ? { notRecorded: false, text: DILUENT_POOL.repeat(Math.ceil(dil / DILUENT_POOL.length)).slice(0, dil).trim() } : { notRecorded: true },
+    minTransfer: { value: '2', unit: 'µL', defaulted: true }, capacity: { value: pad('1'), unit: 'mL' },
+    components: Array.from({ length: n }, (_, i) => ({
+      label: `${MARKERS[i % MARKERS.length]} ${FLUORS[(i * 7) % FLUORS.length]}`,
+      intended: { value: i % 7 === 3 ? '0.001' : '0.05', unit: 'µg' }, stock: { value: '1', unit: 'mg/mL' },
+      establishedVolume: i % 5 === 1 ? { notRecorded: true } : { value: i % 3 === 0 ? '50' : '100', unit: 'µL' },
+      establishedCells: i % 6 === 2 ? { notRecorded: true } : { value: i % 4 === 0 ? '500000' : '1000000', unit: 'cells' },
+      provenance: ['titrated-here', 'vendor', 'titrated-here', 'not-recorded', 'vendor'][i % 5],
+    })),
+  };
+}
+async function open(page, query, width) {
+  if (!PAGE) {
+    await page.goto(`${base}?${query}`, { waitUntil: 'networkidle' });
+    await page.waitForFunction(() => document.documentElement.dataset.mockReady === '1');
+    return;
+  }
+  await page.goto(base, { waitUntil: 'networkidle' });
+  await fill(page, pageInput(query));
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForTimeout(50);
+}
 const widthArg = args.find((a) => a.startsWith('--width='));
 const VIEW = { width: widthArg ? Number(widthArg.slice(8)) : 1366, height: 650 };
 const STEP = 50;
@@ -58,8 +103,7 @@ try {
     const errors = [];
     page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
     page.on('pageerror', (e) => errors.push(e.message));
-    await page.goto(`${base}?${c.query}`, { waitUntil: 'networkidle' });
-    await page.waitForFunction(() => document.documentElement.dataset.mockReady === '1');
+    await open(page, c.query, VIEW.width);
     if (NEGATIVE) await page.evaluate(() => { document.getElementById('bounded-block').style.position = 'static'; });
 
     const m = await page.evaluate(() => {
@@ -74,7 +118,7 @@ try {
         stickyTopPx: stickyTop,
         componentRowHeightPx: row.height,
         totalPageHeightPx: document.documentElement.scrollHeight,
-        vz03HeightPx: r('#vz03 svg').height,
+        vz03HeightPx: r('#vz03 > svg').height,
         horizontalOverflowPx: Math.max(0, document.documentElement.scrollWidth - innerWidth),
         // Row fields whose entered text or chosen option is cut off by the field's width.
         truncatedFields: [...document.querySelectorAll('#components-body input[type=text], #components-body select')].filter((el) => {
@@ -106,8 +150,7 @@ try {
     // The table's horizontal slack at SLACK_WIDTH_PX: the content width
     // available to it less its own max-content width.
     const slackPage = await browser.newPage({ viewport: { width: SLACK_WIDTH_PX, height: VIEW.height } });
-    await slackPage.goto(`${base}?${c.query}`, { waitUntil: 'networkidle' });
-    await slackPage.waitForFunction(() => document.documentElement.dataset.mockReady === '1');
+    await open(slackPage, c.query, SLACK_WIDTH_PX);
     const slackAtWidthPx = await slackPage.evaluate(() => {
       const t = document.getElementById('components'); const host = t.parentElement; const cs = getComputedStyle(host);
       const available = host.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
@@ -174,9 +217,12 @@ try {
       consoleErrors: errors,
       violations,
     };
-    console.log(JSON.stringify(line));
+    // On the real page, the panel must have raised the flags the case is built for.
+    const expectedFlags = /diluent=/.test(c.query) ? 9 : 10;
+    if (PAGE && !NEGATIVE && !queryArg && m.flags !== expectedFlags) { line.flagsExpected = expectedFlags; failed = true; }
     if (violations.length || errors.length || m.horizontalOverflowPx > 0 || m.truncatedFields.length
       || m.blockHeightPx > BLOCK_BOUND_PX || slackAtWidthPx < MIN_SLACK_PX) failed = true;
+    console.log(JSON.stringify(line));
     await page.close();
   }
 } finally {

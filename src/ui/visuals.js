@@ -1,0 +1,123 @@
+// The visuals (C5-VZ-01 to VZ-10), as SVG, drawn from the structured result
+// only (C5-VZ-04). No number is computed here: each label is a value of the
+// record, displayed as the table displays it (format.js); positions are only
+// the drawing's geometry. No animation and no progress indicator (VZ-10).
+// Colour encodes identity only and never alone (VZ-07): components and
+// diluent also differ by fill pattern and by label; nothing is coloured by
+// acceptability. Every flagged component carries its reason codes wherever it
+// appears (VZ-06). Each label carries data-key, the same key as the table's
+// cell for that value (acceptance 27).
+import { escapeHtml as esc } from '@ligant/bench-chrome';
+import { sig } from '../engine/numfmt.js';
+import { PRECISION } from '../engine/format.js';
+
+const W = 1200;
+const vol = (x) => sig(x, PRECISION.volumes);
+const ratio = (x) => sig(x, PRECISION.ratios);
+const WITHHELD = { 'C5-FL-02': 'withheld: established staining volume not recorded (C5-FL-02)' };
+
+/** The reason codes naming each component, as "FL-01 FL-04". */
+export function codesByComponent(rec) {
+  const m = new Map();
+  for (const f of rec.flags) for (const i of f.components) m.set(i, [...(m.get(i) || []), f.code.replace('C5-', '')]);
+  return m;
+}
+
+const name = (rec, i) => {
+  const label = rec.declarations.components[i - 1].label.trim();
+  return label ? `${i} ${label}` : `${i} (no label)`;
+};
+
+const hatch = (p) => `<defs><pattern id="${p}diluent-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#ffffff"/><line x1="0" y1="0" x2="0" y2="6" stroke="#6b6b6b" stroke-width="1.2"/></pattern></defs>`;
+
+// C5-VZ-01: the assay staining volume, divided into the volume already present
+// with the cells and the dispensed volume. A declared zero residual is drawn as
+// a labelled zero-width segment, not omitted.
+function vz01(rec, p) {
+  const R = rec.declarations.residual.normalised.value;
+  const D = rec.declarations.dispensed.normalised.value;
+  const SV = rec.values.svAssay.value;
+  const xr = (R / SV) * W;
+  const seg = R === 0
+    ? `<line class="seg-zero" data-key="vz01-residual-segment" x1="0" y1="6" x2="0" y2="38" stroke="#1f1f1f" stroke-width="2"/>`
+    : `<rect class="seg-b" data-key="vz01-residual-segment" x="0" y="10" width="${xr}" height="24"/>`;
+  return `<div class="vz" id="${p}vz01">`
+    + '<h3 class="sub-h">C5-VZ-01 · Tube composition</h3>'
+    + `<svg viewBox="0 0 ${W} 64" role="img" aria-label="Tube composition: volume present with the cells and volume dispensed">`
+    + `${seg}<rect class="seg-a" x="${xr}" y="10" width="${W - xr}" height="24"/>`
+    + `<text x="2" y="54" class="num" data-key="vz01-residual">present with cells ${esc(vol(R))} µL</text>`
+    + `<text x="${Math.min(Math.max(xr + 4, 240), W - 260)}" y="54" class="num" data-key="vz01-dispensed">dispensed ${esc(vol(D))} µL</text>`
+    + `<text x="${W - 4}" y="54" text-anchor="end" class="num" data-key="vz01-sv">assay staining volume ${esc(vol(SV))} µL</text>`
+    + '</svg></div>';
+}
+
+// C5-VZ-02: the cocktail, to scale, divided into each component and the
+// diluent. Segments become too thin to label as the count grows, so a legend
+// lists every component with its volume and reason codes. The antibody
+// fraction is stated beside it (C5-DT-06); no threshold, band or colour judges it.
+function vz02(rec, codes, p) {
+  const v = rec.values;
+  const total = v.totalCocktail.value;
+  let x = 0;
+  let segs = '';
+  for (const c of v.components) {
+    const w = (c.volumeInCocktail.value / total) * W;
+    segs += `<rect class="seg-a" data-component-segment="${c.index}" x="${x}" y="8" width="${w}" height="26"/>`;
+    if (w > 22) segs += `<text x="${x + w / 2}" y="26" text-anchor="middle" class="num">${c.index}</text>`;
+    x += w;
+  }
+  segs += `<rect class="seg-diluent" fill="url(#${p}diluent-hatch)" x="${x}" y="8" width="${Math.max(W - x, 0)}" height="26"/>`;
+  const legend = v.components.map((c) => {
+    const cc = codes.get(c.index);
+    return `<li data-component="vz02-${c.index}"><span class="swatch component" aria-hidden="true"></span>${esc(name(rec, c.index))}: <span class="num" data-key="vcocktail-${c.index}">${esc(vol(c.volumeInCocktail.value))}</span> µL${cc ? ` <span class="codes">${esc(cc.join(' '))}</span>` : ''}</li>`;
+  }).join('');
+  return `<div class="vz" id="${p}vz02">`
+    + '<h3 class="sub-h">C5-VZ-02 · Cocktail composition</h3>'
+    + `<svg viewBox="0 0 ${W} 42" role="img" aria-label="Cocktail composition, to scale">${hatch(p)}${segs}</svg>`
+    + `<p class="hint">Total component volume ÷ total cocktail volume (antibody fraction) = <span class="num" data-key="antibody-fraction">${esc(ratio(v.antibodyFraction.value))}</span>. No threshold applies.</p>`
+    + `<ul class="vz-legend">${legend}<li><span class="swatch diluent" aria-hidden="true"></span>Diluent: <span class="num" data-key="diluent-total">${esc(vol(v.diluentTotal.value))}</span> µL</li></ul></div>`;
+}
+
+// C5-VZ-03: each component's concentration in the assay ÷ the concentration it
+// was established at, on a log axis centred on 1 with ticks symmetric in log
+// space. The range is 0.25 to 4, extended to the nearest power of two beyond
+// the plotted ratios (§11). A withheld ratio is an empty labelled row with its
+// reason, never a mark (VZ-05). The axis is pinned at the top of the strip,
+// under the bounded block, so it stays in view at 60 components.
+const LEFT = 360;
+const RIGHT = 60;
+function vz03(rec, codes, p) {
+  const comps = rec.values.components;
+  let L = 2; // log2(4)
+  for (const c of comps) if (!c.ratio.withheld) L = Math.max(L, Math.ceil(Math.abs(Math.log2(c.ratio.value))));
+  const xOf = (r) => LEFT + ((Math.log2(r) + L) / (2 * L)) * (W - LEFT - RIGHT);
+  const ticks = [];
+  for (let k = -L; k <= L; k++) ticks.push(2 ** k);
+  const tickLabel = (t) => (t >= 1 ? String(t) : `1/${1 / t}`);
+  const axis = `<svg viewBox="0 0 ${W} 30" role="img" aria-label="Ratio axis, logarithmic, centred on 1">`
+    + `<text x="4" y="20">concentration in the assay ÷ concentration established at</text>`
+    + ticks.map((t) => `<text x="${xOf(t)}" y="20" text-anchor="middle" class="num" data-tick="${t}">${tickLabel(t)}</text>`).join('')
+    + '</svg>';
+  const ROW = 22;
+  const h = comps.length * ROW + 6;
+  const grid = ticks.map((t) => `<line class="${t === 1 ? 'unity' : 'axis'}" x1="${xOf(t)}" y1="0" x2="${xOf(t)}" y2="${h}"/>`).join('');
+  const rows = comps.map((c, i) => {
+    const y = i * ROW + ROW / 2 + 3;
+    const cc = codes.get(c.index);
+    const label = `<text x="4" y="${y + 4}">${esc(name(rec, c.index))}${cc ? `  ${esc(cc.join(' '))}` : ''}</text>`;
+    const body = c.ratio.withheld
+      ? `<text x="${LEFT + 6}" y="${y + 4}" class="withheld-text" data-key="ratio-${c.index}">${esc(WITHHELD[c.ratio.reason] || `withheld: ${c.ratio.reason}`)}</text>`
+      : `<circle class="mark" data-mark="${c.index}" cx="${xOf(c.ratio.value)}" cy="${y}" r="4"/><text x="${xOf(c.ratio.value) + 8}" y="${y + 4}" class="num" data-key="ratio-${c.index}">${esc(ratio(c.ratio.value))}</text>`;
+    return `<g data-component="vz03-${c.index}">${label}${body}</g>`;
+  }).join('');
+  return `<div class="vz" id="${p}vz03">`
+    + '<h3 class="sub-h">C5-VZ-03 · Concentration ratio strip</h3>'
+    + `<div class="vz03-axis">${axis}</div>`
+    + `<svg viewBox="0 0 ${W} ${h}" role="img" aria-label="Concentration ratio of each component, logarithmic axis centred on 1">${grid}${rows}</svg></div>`;
+}
+
+/** All three visuals. `prefix` keeps element ids unique when drawn twice (page and bench sheet). */
+export function visualsHtml(rec, prefix = '') {
+  const codes = codesByComponent(rec);
+  return vz01(rec, prefix) + vz02(rec, codes, prefix) + vz03(rec, codes, prefix);
+}
