@@ -40,56 +40,6 @@ export function roundDec(x, n) {
   return Dec.roundSig(Dec.fromNumberExact(x), n);
 }
 
-/**
- * Directed rounding for a displayed bound (decision of 28 September 2026,
- * spec/decision-2026-09-28-directed-rounding.md): 'up' for an "at most" value,
- * 'down' for an "at least" value, at n significant figures, on the exact
- * decimal expansion of the double. Values are positive (a bound on a
- * concentration or a volume). Exactness is kept: a value already on the grid
- * is returned unchanged.
- */
-export function roundDecDirected(x, n, dir) {
-  if (!(x > 0)) throw new Error(`roundDecDirected: expects a positive value, got ${x}`);
-  const d = Dec.fromNumberExact(x);
-  const digits = d.mant.toString();
-  if (digits.length <= n) return Dec.roundSig(d, n); // exact; pads to n figures
-  const drop = digits.length - n;
-  let kept = BigInt(digits.slice(0, n));
-  let exp = d.exp + drop;
-  const inexact = /[1-9]/.test(digits.slice(n));
-  if (dir === 'up' && inexact) {
-    kept += 1n;
-    if (kept.toString().length > n) { kept /= 10n; exp += 1; } // 999… → 1000…
-  } else if (dir !== 'up' && dir !== 'down') throw new Error(`roundDecDirected: direction ${dir}`);
-  return { neg: false, mant: kept, exp };
-}
-
-export function sigDirected(x, n, dir) {
-  return Dec.toString(roundDecDirected(x, n, dir));
-}
-
-/**
- * A signed fraction as a percentage at n sf, rounded toward +∞ ('up') on the
- * exact binary value — for a quantity that is an upper bound (the departure of
- * an "at most" concentration, T2). Positive values round away from zero,
- * negative ones toward it. An explicit '+' when positive.
- */
-export function signedPctUp(f, n = 3) {
-  if (f === 0) return '0';
-  const mag = roundDecDirected(Math.abs(f), n, f > 0 ? 'up' : 'down');
-  const s = Dec.toString(Dec.shift(mag, 2));
-  return f > 0 ? `+${s}` : `-${s}`;
-}
-
-/** C7-FX-12 for a directed bound: the critical points are the grid points, not the ties. */
-export function gridDistance(x, n) {
-  const d = Dec.fromNumberExact(x);
-  const down = roundDecDirected(x, n, 'down');
-  const up = roundDecDirected(x, n, 'up');
-  const a = Dec.abs(Dec.sub(d, down)); const b = Dec.abs(Dec.sub(up, d));
-  return Dec.toString(Dec.trimZeros(Dec.cmp(a, b) <= 0 ? a : b));
-}
-
 /** Display string of a double at n significant figures. */
 export function sig(x, n) {
   return Dec.toString(roundDec(x, n));
