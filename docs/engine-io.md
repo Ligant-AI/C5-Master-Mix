@@ -196,6 +196,16 @@ rejection = { "code", "component"?: index, "quantity"?: field, "message", ...det
 
 - **Incomplete** (no result yet; not a rejection): `field` is one of `dispensed`, `residual`, `assayCells`, `samples`, `overage.form`, `overage.value`, `basis`, `diluent`, `minTransfer`, `capacity`, `label`, `intended`, `stock`, `establishedVolume`, `establishedCells`, `provenance`. `reason` is `blank`, `no-unit`, `invalid` (includes a comma), `unrepresentable`, or `not-selected`. `basis` is incomplete only where C5-CP-07 requires it.
 - **Rejected**: every rule whose own inputs are present is applied, even while other fields are incomplete; rejected takes precedence. `code` is one of C5-HI-01 to C5-HI-06 and C5-HI-08 to C5-HI-11 (C5-HI-07 is withdrawn and never appears), in that order, by component index within a code, followed by the branches **pending a ruling**: `PENDING-Q1` (a concentration-type intended quantity whose `SV_i` is not recorded), `PENDING-Q2` (a stock volume per test with no stock concentration), `PENDING-Q4` (an established staining volume ≤ 0, an established cell number < 0, or a capacity ≤ 0). `PENDING-*` codes are not URS IDs. C5-HI-06 carries `"components": [{ "component": i, "volumePerTest_uL": "<3 s.f.>" }]` and `"total_uL"`, the exact decimal sum of those displayed volumes; it is decided only once validation finds no other rejection.
+- **Computed values beyond the range of a double** (Task 6b review, ruling 1). Typed values can each be representable while a value computed from them is not. Every computed value below is checked, in the order shown, as it is computed; the first that is not finite ends the determination with `"status": "incomplete"` and one entry, `reason` `"unrepresentable"`, in the field shown. Not C5-HI-06, whose message lists displayable volumes. No non-finite value is ever returned.
+
+  | Computed value | `field` | `component` |
+  |---|---|---|
+  | `nEff`, then `overageFraction` | `overage.value` | absent |
+  | per component, in entered order: `stockVolumePerTest_uL`, `volumePerTest_uL`, `volumeInCocktail_uL`, `concentrationInAssay.value`, `ratio.value` | `intended` | that component |
+  | `Σv`, the sum of the volumes per test (checked before C5-HI-06) | `intended` | absent |
+  | `totalCocktail_uL`, `ΣV`, `diluentTotal_uL`, `antibodyFraction` | `dispensed` | absent |
+  | C5-FL-11's `factor`, per component | `establishedCells` | that component |
+
 - **Acceptance 3 compares** for a non-result: `status`, the ordered list of `(code, component)` and, for incomplete, the set of `(field, component, reason)`. `message` text is for acceptance 12 and is not compared by value.
 
 ---
