@@ -1,0 +1,10 @@
+$ node verification/headless/smoke.mjs http://localhost:4175/
+{
+  "url": "http://localhost:4175/",
+  "title": "Ligant · Master Mix",
+  "consoleErrors": [],
+  "localStorageKeys": [],
+  "sessionStorageLength": 0,
+  "cookieCount": 0
+}
+exit=0

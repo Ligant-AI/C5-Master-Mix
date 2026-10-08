@@ -1,0 +1,62 @@
+$ npm run test:reimpl
+
+> ligant-master-mix@0.1.0 test:reimpl
+> node --test tests/reimpl.acceptance.mjs
+
+✔ C5-FX-01 (57.344625ms)
+✔ C5-FX-02a (48.451458ms)
+✔ C5-FX-02b (48.602834ms)
+✔ C5-FX-03 (48.786625ms)
+✔ C5-FX-04 (48.044459ms)
+✔ C5-FX-05a (48.475625ms)
+✔ C5-FX-05b (48.53575ms)
+✔ C5-FX-06a (47.812625ms)
+✔ C5-FX-06b (47.551209ms)
+✔ C5-FX-07a (47.476667ms)
+✔ C5-FX-07b (48.322792ms)
+✔ C5-FX-07c (48.301792ms)
+✔ C5-FX-08 (48.017959ms)
+✔ C5-FX-08a-blank (47.294334ms)
+✔ C5-FX-08a (48.138042ms)
+✔ C5-FX-09 (49.121541ms)
+✔ C5-FX-11 (48.722584ms)
+✔ C5-FX-11b (48.191042ms)
+✔ C5-FX-12a (48.344666ms)
+✔ C5-FX-12b (47.830792ms)
+✔ C5-FX-13 (48.11625ms)
+✔ C5-FX-14a (48.179ms)
+✔ C5-FX-14b (47.905792ms)
+✔ C5-FX-16 (48.618083ms)
+✔ C5-FX-18a (48.51125ms)
+✔ C5-FX-18b (47.776167ms)
+✔ C5-FX-18c (47.952875ms)
+✔ C5-FX-18d (48.527083ms)
+✔ C5-FX-18e (48.039125ms)
+✔ C5-FX-18f (47.261208ms)
+✔ C5-FX-18g (47.09075ms)
+✔ C5-FX-19 (48.182791ms)
+✔ C5-FX-20 (48.2065ms)
+✔ C5-FX-21 (49.213875ms)
+✔ C5-FX-22 (48.038667ms)
+✔ C5-FX-23 (52.632167ms)
+✔ C5-FX-24 (51.142541ms)
+✔ C5-FX-27a (48.182917ms)
+✔ C5-FX-27b (47.668375ms)
+✔ C5-FX-27c (47.615708ms)
+✔ C5-REF-01 (48.142334ms)
+✔ OVERFLOW-a (48.546167ms)
+✔ OVERFLOW-b (47.397458ms)
+✔ PENDING-Q1 (47.416166ms)
+✔ PENDING-Q2 (47.43575ms)
+✔ PENDING-Q4 (47.0725ms)
+✔ acceptance 3 summary (0.126166ms)
+ℹ 46 fixtures; 1763 numbers compared in results; 0 difference(s)
+ℹ tests 47
+ℹ suites 0
+ℹ pass 47
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2274.014917
+exit=0

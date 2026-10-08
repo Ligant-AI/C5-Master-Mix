@@ -194,6 +194,42 @@ try {
     report('acceptance 26: the notebook copy carries every declaration, every flag in words, each volume and concentration, and the effective test count', results.every((r) => !r.notebookMissing.length && r.notebookHasEachVolumeAndConcentration), { results: results.map((r) => ({ fixture: r.fixture, notebookMissing: r.notebookMissing, eachVolumeAndConcentration: r.notebookHasEachVolumeAndConcentration })) });
   }
 
+  // ---- acceptance 14 on the page (C5-FX-11) -------------------------------------------
+  {
+    const { context, page } = await open(fx('C5-FX-11').input);
+    const rec = await recordOf(page);
+    const unevaluated = rec.values.fl08Unevaluated;
+    const r = await page.evaluate((unevaluated) => ({
+      cells: unevaluated.map((i) => document.querySelector(`#outputs #result-table [data-key="ratio-${i}"]`)?.textContent),
+      cp07Block: document.getElementById('cp07-statement').textContent,
+      cp07Names: document.querySelector('[data-component="names-CP-07"]')?.textContent || '',
+      notEvaluated: [...document.querySelectorAll('#derivation dd')].map((d) => d.textContent).find((t) => t.startsWith('Not evaluated for C5-FL-08')) || '',
+    }), unevaluated);
+    const ok = unevaluated.length > 0 && r.cells.every((t) => /^withheld/.test(t) && t.trim() !== '1' && t.trim() !== '1.00')
+      && /not required/.test(r.cp07Block) && unevaluated.every((i) => r.cp07Names.includes(`Component ${i}`)) && unevaluated.every((i) => r.notEvaluated.includes(`Component ${i}`));
+    report('acceptance 14: withheld in the cell, named unevaluated for C5-FL-08, named separately under C5-CP-07 (C5-FX-11)', ok, { unevaluated, ...r });
+    await context.close();
+  }
+
+  // ---- acceptance 21: register, failure list and privacy text on the page ------------------
+  {
+    const { context, page } = await open(fx('C5-FX-01').input);
+    const { REGISTER, FAILURES } = await import('../../src/engine/register.js');
+    const { PRIVACY_STATEMENT } = await import('../../src/shared/privacy-statement.js');
+    const r = await page.evaluate(() => ({
+      rows: [...document.querySelectorAll('#register tbody tr')].map((tr) => [...tr.children].map((td) => td.textContent)),
+      failures: document.querySelectorAll('#failures ol > li').length,
+      privacy: document.querySelector('#privacy-body p').textContent,
+    }));
+    const statuses = new Set(['derived', 'characterised', 'measured', 'disclosed', 'convention', 'proposed', 'open']);
+    const rowsOk = r.rows.length === REGISTER.length && r.rows.every((x) => x.length === 4 && x.every((t) => t.trim().length > 0) && statuses.has(x[3].split(' ')[0]));
+    const privacyByteEqual = Buffer.from(r.privacy, 'utf8').equals(Buffer.from(PRIVACY_STATEMENT, 'utf8'));
+    report('acceptance 21: every register row with value, basis and status; the failure list; the privacy text byte-for-byte', rowsOk && r.failures === FAILURES.length && r.failures === 10 && privacyByteEqual, {
+      registerRows: r.rows.length, everyRowHasValueBasisAndOneStatus: rowsOk, failureClasses: r.failures, privacyByteEqual, privacyText: 'C7\'s statement, pending URS v1.0.1',
+    });
+    await context.close();
+  }
+
   // ---- greyscale bench sheet of C5-FX-24, for Adacs (ahead of acceptance 30) ---------------------
   {
     const dir = path.join(ROOT, 'verification/print');
