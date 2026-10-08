@@ -14,8 +14,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = process.env.GUARD_ROOT || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const FORBIDDEN = /localStorage|sessionStorage|indexedDB|document\s*\.\s*cookie|\bcookieStore\b/;
-const OWN = ['src', 'index.html', 'vite.config.js'];
+// Deliberately broad: any "Storage" (localStorage, sessionStorage, and the
+// window['local' + 'Storage'] spelling), indexedDB, any cookie property access
+// (document.cookie, document['cookie'], an alias's .cookie, a .cookie on the next
+// line), cookieStore, the Cache API, navigator.storage, window.name, and URL or
+// history state. A hit the guard should not count needs a reviewed change here.
+const FORBIDDEN = /Storage|indexedDB|cookieStore|[.'"`]\s*cookie\b|\bcaches\s*\.|navigator\s*\.\s*storage|window\s*\.\s*name\b|history\s*\.\s*(push|replace)State/;
+const OWN = ['src', 'public', 'index.html', 'vite.config.js'];
+const TEXT = /\.(js|mjs|cjs|jsx|html|htm|svg|json)$|(^|\/)_headers$/;
 const FRAME = 'node_modules/@ligant/bench-chrome/src';
 
 // The frame's privacy choice: a single localStorage key, read and written only
@@ -42,7 +48,7 @@ function hits(rel) {
 }
 
 test("C5-ST-10: the tool's own source names no browser storage and no cookie", () => {
-  const scanned = OWN.flatMap(files).filter((f) => /\.(js|mjs|html)$/.test(f));
+  const scanned = OWN.flatMap(files).filter((f) => TEXT.test(f));
   assert.ok(scanned.length > 0, 'nothing scanned');
   const found = scanned.flatMap(hits);
   assert.deepEqual(found, [], `storage or cookie named in:\n${found.map((h) => `  ${h.file}:${h.line}: ${h.text.trim()}`).join('\n')}`);
