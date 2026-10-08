@@ -1,0 +1,146 @@
+{
+ "id": "C5-FX-01",
+ "title": "Non-round panel, hand calculation",
+ "standard": "Hand calculation to displayed precision under C5-UN-06",
+ "assumptions": {
+  "exactTiesAtDisplayedPrecision": false,
+  "powerOfTwoRatios": false,
+  "symmetricInputs": false,
+  "note": "No displayed value lies within a relative 1e-6 of a 3 s.f. tie (checked by exact rational arithmetic). Overage 12.5 % of 37 gives N_eff = 41.625, exact in binary. All components at the assay conditions; no flags expected."
+ },
+ "ui": false,
+ "input": {
+  "dispensed": {
+   "value": "47",
+   "unit": "µL"
+  },
+  "residual": {
+   "value": "23",
+   "unit": "µL"
+  },
+  "assayCells": {
+   "value": "750000",
+   "unit": "cells"
+  },
+  "samples": "37",
+  "overage": {
+   "form": "percentage",
+   "value": "12.5",
+   "unit": ""
+  },
+  "basis": "",
+  "diluent": {
+   "notRecorded": false,
+   "text": "PBS, 2% FBS"
+  },
+  "minTransfer": {
+   "value": "2",
+   "unit": "µL",
+   "defaulted": false
+  },
+  "capacity": {
+   "value": "",
+   "unit": ""
+  },
+  "components": [
+   {
+    "label": "CD3 BUV395",
+    "intended": {
+     "value": "0.37",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "0.83",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "70",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "750000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   },
+   {
+    "label": "CD4 BV421",
+    "intended": {
+     "value": "1.15",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "0.5",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "70",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "750000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   },
+   {
+    "label": "CD8 BV711",
+    "intended": {
+     "value": "0.215",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "0.2",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "70",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "750000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   },
+   {
+    "label": "CD19 PE",
+    "intended": {
+     "value": "0.61",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "1",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "70",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "750000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   }
+  ]
+ },
+ "expect": {
+  "status": "result",
+  "flags": [],
+  "display3sf": {
+   "volumeInCocktail_uL": [
+    "18.6",
+    "95.7",
+    "44.7",
+    "25.4"
+   ],
+   "diluentTotal_uL": "1770",
+   "displayedTotal_uL": "1954.4"
+  }
+ }
+}

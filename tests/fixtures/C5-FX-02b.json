@@ -1,0 +1,94 @@
+{
+ "id": "C5-FX-02b",
+ "title": "Same panel, units set B",
+ "standard": "C5-IV-06",
+ "assumptions": {
+  "exactTiesAtDisplayedPrecision": false,
+  "powerOfTwoRatios": false,
+  "symmetricInputs": false,
+  "note": "Every quantity of C5-FX-02a in another unit of its family: mL for volumes, x10^6 cells, ng/ug swapped, ug/mL and g/L for mg/mL."
+ },
+ "ui": false,
+ "input": {
+  "dispensed": {
+   "value": "0.05",
+   "unit": "mL"
+  },
+  "residual": {
+   "value": "0.05",
+   "unit": "mL"
+  },
+  "assayCells": {
+   "value": "1",
+   "unit": "× 10⁶ cells"
+  },
+  "samples": "96",
+  "overage": {
+   "form": "additional-tests",
+   "value": "4",
+   "unit": ""
+  },
+  "basis": "",
+  "diluent": {
+   "notRecorded": false,
+   "text": "PBS, 2% FBS"
+  },
+  "minTransfer": {
+   "value": "2",
+   "unit": "µL",
+   "defaulted": false
+  },
+  "capacity": {
+   "value": "",
+   "unit": ""
+  },
+  "components": [
+   {
+    "label": "CD3",
+    "intended": {
+     "value": "500",
+     "unit": "ng"
+    },
+    "stock": {
+     "value": "500",
+     "unit": "µg/mL"
+    },
+    "establishedVolume": {
+     "value": "0.1",
+     "unit": "mL"
+    },
+    "establishedCells": {
+     "value": "1",
+     "unit": "× 10⁶ cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   },
+   {
+    "label": "CD4",
+    "intended": {
+     "value": "0.25",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "0.25",
+     "unit": "g/L"
+    },
+    "establishedVolume": {
+     "value": "0.1",
+     "unit": "mL"
+    },
+    "establishedCells": {
+     "value": "1",
+     "unit": "× 10⁶ cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   }
+  ]
+ },
+ "expect": {
+  "status": "result",
+  "sameValuesAs": "C5-FX-02a"
+ }
+}

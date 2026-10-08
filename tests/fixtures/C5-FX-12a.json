@@ -1,0 +1,87 @@
+{
+ "id": "C5-FX-12a",
+ "title": "Cell-number disagreement, preserve-concentration",
+ "standard": "C5-FL-11 under both bases, direction per C5-DT-06",
+ "assumptions": {
+  "exactTiesAtDisplayedPrecision": false,
+  "powerOfTwoRatios": false,
+  "symmetricInputs": false,
+  "note": "Established 1 x10^6, assay 5 x10^6; staining volumes equal, so the factor is 0.2 under both bases."
+ },
+ "ui": false,
+ "input": {
+  "dispensed": {
+   "value": "50",
+   "unit": "µL"
+  },
+  "residual": {
+   "value": "50",
+   "unit": "µL"
+  },
+  "assayCells": {
+   "value": "5",
+   "unit": "× 10⁶ cells"
+  },
+  "samples": "96",
+  "overage": {
+   "form": "additional-tests",
+   "value": "4",
+   "unit": ""
+  },
+  "basis": "preserve-concentration",
+  "diluent": {
+   "notRecorded": false,
+   "text": "PBS, 2% FBS"
+  },
+  "minTransfer": {
+   "value": "2",
+   "unit": "µL",
+   "defaulted": false
+  },
+  "capacity": {
+   "value": "",
+   "unit": ""
+  },
+  "components": [
+   {
+    "label": "A",
+    "intended": {
+     "value": "0.5",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "0.5",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "100",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1",
+     "unit": "× 10⁶ cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   }
+  ]
+ },
+ "expect": {
+  "status": "result",
+  "flagCodes": {
+   "C5-FL-11": [
+    1
+   ]
+  },
+  "flagDetail": {
+   "C5-FL-11": {
+    "amountPerCell": [
+     {
+      "component": 1,
+      "factor": 0.2
+     }
+    ]
+   }
+  }
+ }
+}

@@ -1,0 +1,103 @@
+{
+ "id": "C5-FX-06a",
+ "title": "Mixed staining volumes, non-power-of-two, preserve-concentration",
+ "standard": "As C5-FX-05, with no exact binary ratio",
+ "assumptions": {
+  "exactTiesAtDisplayedPrecision": false,
+  "powerOfTwoRatios": false,
+  "symmetricInputs": false,
+  "note": "60 vs 140 uL: scale factor 7/3, not exact in binary."
+ },
+ "ui": false,
+ "input": {
+  "dispensed": {
+   "value": "100",
+   "unit": "µL"
+  },
+  "residual": {
+   "value": "40",
+   "unit": "µL"
+  },
+  "assayCells": {
+   "value": "1000000",
+   "unit": "cells"
+  },
+  "samples": "96",
+  "overage": {
+   "form": "additional-tests",
+   "value": "4",
+   "unit": ""
+  },
+  "basis": "preserve-concentration",
+  "diluent": {
+   "notRecorded": false,
+   "text": "PBS, 2% FBS"
+  },
+  "minTransfer": {
+   "value": "2",
+   "unit": "µL",
+   "defaulted": false
+  },
+  "capacity": {
+   "value": "",
+   "unit": ""
+  },
+  "components": [
+   {
+    "label": "At 60",
+    "intended": {
+     "value": "0.37",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "0.83",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "60",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   },
+   {
+    "label": "At 140",
+    "intended": {
+     "value": "0.21",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "0.3",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "140",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   }
+  ]
+ },
+ "expect": {
+  "status": "result",
+  "basisRequired": true,
+  "flagCodes": {
+   "C5-FL-01": [
+    1
+   ],
+   "C5-FL-08": [
+    1,
+    2
+   ]
+  }
+ }
+}

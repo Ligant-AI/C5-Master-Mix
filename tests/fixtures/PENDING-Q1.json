@@ -1,0 +1,76 @@
+{
+ "id": "PENDING-Q1",
+ "title": "Concentration quantity, established volume not recorded",
+ "standard": "",
+ "assumptions": {
+  "exactTiesAtDisplayedPrecision": false,
+  "powerOfTwoRatios": false,
+  "symmetricInputs": false
+ },
+ "ui": false,
+ "input": {
+  "dispensed": {
+   "value": "50",
+   "unit": "µL"
+  },
+  "residual": {
+   "value": "50",
+   "unit": "µL"
+  },
+  "assayCells": {
+   "value": "1000000",
+   "unit": "cells"
+  },
+  "samples": "96",
+  "overage": {
+   "form": "additional-tests",
+   "value": "4",
+   "unit": ""
+  },
+  "basis": "",
+  "diluent": {
+   "notRecorded": false,
+   "text": "PBS, 2% FBS"
+  },
+  "minTransfer": {
+   "value": "2",
+   "unit": "µL",
+   "defaulted": false
+  },
+  "capacity": {
+   "value": "",
+   "unit": ""
+  },
+  "components": [
+   {
+    "label": "A",
+    "intended": {
+     "value": "5",
+     "unit": "µg/mL"
+    },
+    "stock": {
+     "value": "0.5",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "notRecorded": true
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   }
+  ]
+ },
+ "expect": {
+  "status": "rejected",
+  "rejections": [
+   {
+    "code": "PENDING-Q1",
+    "component": 1
+   }
+  ]
+ }
+}

@@ -1,0 +1,89 @@
+{
+ "id": "C5-FX-19",
+ "title": "Zero assay cells",
+ "standard": "FL-11 raised; ratio withheld with reason; no non-finite value",
+ "assumptions": {
+  "exactTiesAtDisplayedPrecision": false,
+  "powerOfTwoRatios": false,
+  "symmetricInputs": false,
+  "note": "No-cell control against a component established at 1 x10^6."
+ },
+ "ui": false,
+ "input": {
+  "dispensed": {
+   "value": "50",
+   "unit": "µL"
+  },
+  "residual": {
+   "value": "50",
+   "unit": "µL"
+  },
+  "assayCells": {
+   "value": "0",
+   "unit": "cells"
+  },
+  "samples": "96",
+  "overage": {
+   "form": "additional-tests",
+   "value": "4",
+   "unit": ""
+  },
+  "basis": "",
+  "diluent": {
+   "notRecorded": false,
+   "text": "PBS, 2% FBS"
+  },
+  "minTransfer": {
+   "value": "2",
+   "unit": "µL",
+   "defaulted": false
+  },
+  "capacity": {
+   "value": "",
+   "unit": ""
+  },
+  "components": [
+   {
+    "label": "A",
+    "intended": {
+     "value": "0.5",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "0.5",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "100",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   }
+  ]
+ },
+ "expect": {
+  "status": "result",
+  "flagCodes": {
+   "C5-FL-11": [
+    1
+   ]
+  },
+  "flagDetail": {
+   "C5-FL-11": {
+    "amountPerCell": [
+     {
+      "component": 1,
+      "withheld": true,
+      "reason": "assay-cells-zero"
+     }
+    ]
+   }
+  },
+  "allFinite": true
+ }
+}

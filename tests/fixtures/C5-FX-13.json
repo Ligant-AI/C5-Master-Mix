@@ -1,0 +1,77 @@
+{
+ "id": "C5-FX-13",
+ "title": "Comparison rule",
+ "standard": "Treated as equal; FL-01 and FL-11 not raised; no basis demanded",
+ "assumptions": {
+  "exactTiesAtDisplayedPrecision": false,
+  "powerOfTwoRatios": false,
+  "symmetricInputs": false,
+  "note": "Measured: 10.1 + 11.2 = 21.299999999999997 in IEEE double, against 21.3; 1.0000001 x10^6 cells normalises to 1000000.1 against 1000000. Both equal under C5-UN-10 at 1 nL and 1 cell (measurement from the builder's Task 4, confirmed in Python)."
+ },
+ "ui": false,
+ "input": {
+  "dispensed": {
+   "value": "10.1",
+   "unit": "µL"
+  },
+  "residual": {
+   "value": "11.2",
+   "unit": "µL"
+  },
+  "assayCells": {
+   "value": "1000000",
+   "unit": "cells"
+  },
+  "samples": "96",
+  "overage": {
+   "form": "additional-tests",
+   "value": "4",
+   "unit": ""
+  },
+  "basis": "",
+  "diluent": {
+   "notRecorded": false,
+   "text": "PBS, 2% FBS"
+  },
+  "minTransfer": {
+   "value": "2",
+   "unit": "µL",
+   "defaulted": false
+  },
+  "capacity": {
+   "value": "",
+   "unit": ""
+  },
+  "components": [
+   {
+    "label": "A",
+    "intended": {
+     "value": "0.5",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "0.5",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "21.3",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1.0000001",
+     "unit": "× 10⁶ cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   }
+  ]
+ },
+ "expect": {
+  "status": "result",
+  "basisRequired": false,
+  "flagsAbsent": [
+   "C5-FL-01",
+   "C5-FL-11"
+  ]
+ }
+}

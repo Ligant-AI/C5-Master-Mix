@@ -1,0 +1,146 @@
+{
+ "id": "C5-FX-04",
+ "title": "High antibody fraction, small diluent",
+ "standard": "C5-IV-01 and C5-DT-04",
+ "assumptions": {
+  "exactTiesAtDisplayedPrecision": false,
+  "powerOfTwoRatios": false,
+  "symmetricInputs": false,
+  "note": "Each cocktail volume rounds UP at 3 s.f. (333.6 -> 334 etc.); the displayed total, as the sum of displayed volumes, is 2001.6, whereas rounding the unrounded total (2000) would show 2000."
+ },
+ "ui": false,
+ "input": {
+  "dispensed": {
+   "value": "20",
+   "unit": "µL"
+  },
+  "residual": {
+   "value": "80",
+   "unit": "µL"
+  },
+  "assayCells": {
+   "value": "1000000",
+   "unit": "cells"
+  },
+  "samples": "96",
+  "overage": {
+   "form": "additional-tests",
+   "value": "4",
+   "unit": ""
+  },
+  "basis": "",
+  "diluent": {
+   "notRecorded": false,
+   "text": "PBS, 2% FBS"
+  },
+  "minTransfer": {
+   "value": "2",
+   "unit": "µL",
+   "defaulted": false
+  },
+  "capacity": {
+   "value": "",
+   "unit": ""
+  },
+  "components": [
+   {
+    "label": "Ab1",
+    "intended": {
+     "value": "3.336",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "1",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "100",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   },
+   {
+    "label": "Ab2",
+    "intended": {
+     "value": "4.446",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "1",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "100",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   },
+   {
+    "label": "Ab3",
+    "intended": {
+     "value": "5.556",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "1",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "100",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   },
+   {
+    "label": "Ab4",
+    "intended": {
+     "value": "6.556",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "1",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "100",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   }
+  ]
+ },
+ "expect": {
+  "status": "result",
+  "display3sf": {
+   "volumeInCocktail_uL": [
+    "334",
+    "445",
+    "556",
+    "656"
+   ],
+   "diluentTotal_uL": "10.6",
+   "displayedTotal_uL": "2001.6"
+  },
+  "displayedTotalMustDifferFrom": "2000"
+ }
+}

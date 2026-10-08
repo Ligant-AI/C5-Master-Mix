@@ -1,0 +1,117 @@
+{
+ "id": "C5-FX-03",
+ "title": "Round trip under preserve concentration",
+ "standard": "C5-IV-03, derived tolerance, unrounded",
+ "assumptions": {
+  "exactTiesAtDisplayedPrecision": false,
+  "powerOfTwoRatios": false,
+  "symmetricInputs": false,
+  "note": "Established volumes 50, 80 and 150 uL against an assay of 100 uL; 80 and 150 give non-binary scale factors."
+ },
+ "ui": false,
+ "input": {
+  "dispensed": {
+   "value": "50",
+   "unit": "µL"
+  },
+  "residual": {
+   "value": "50",
+   "unit": "µL"
+  },
+  "assayCells": {
+   "value": "1000000",
+   "unit": "cells"
+  },
+  "samples": "96",
+  "overage": {
+   "form": "additional-tests",
+   "value": "4",
+   "unit": ""
+  },
+  "basis": "preserve-concentration",
+  "diluent": {
+   "notRecorded": false,
+   "text": "PBS, 2% FBS"
+  },
+  "minTransfer": {
+   "value": "2",
+   "unit": "µL",
+   "defaulted": false
+  },
+  "capacity": {
+   "value": "",
+   "unit": ""
+  },
+  "components": [
+   {
+    "label": "A",
+    "intended": {
+     "value": "0.4",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "0.5",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "50",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   },
+   {
+    "label": "B",
+    "intended": {
+     "value": "0.33",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "0.7",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "80",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   },
+   {
+    "label": "C",
+    "intended": {
+     "value": "1.1",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "0.9",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "150",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   }
+  ]
+ },
+ "expect": {
+  "status": "result",
+  "relations": [
+   "C5-IV-03"
+  ]
+ }
+}

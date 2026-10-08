@@ -1,0 +1,109 @@
+{
+ "id": "C5-FX-05a",
+ "title": "Mixed staining volumes, power of two, preserve-concentration",
+ "standard": "C5-FL-01 and C5-FL-08 raised; volumes differ between bases by the stated factor; ratio direction per C5-DT-06",
+ "assumptions": {
+  "exactTiesAtDisplayedPrecision": false,
+  "powerOfTwoRatios": true,
+  "symmetricInputs": false,
+  "note": "50 vs 100 uL: the scale factor is exactly 2 and the preserve-amount ratio exactly 0.5."
+ },
+ "ui": false,
+ "input": {
+  "dispensed": {
+   "value": "80",
+   "unit": "µL"
+  },
+  "residual": {
+   "value": "20",
+   "unit": "µL"
+  },
+  "assayCells": {
+   "value": "1000000",
+   "unit": "cells"
+  },
+  "samples": "96",
+  "overage": {
+   "form": "additional-tests",
+   "value": "4",
+   "unit": ""
+  },
+  "basis": "preserve-concentration",
+  "diluent": {
+   "notRecorded": false,
+   "text": "PBS, 2% FBS"
+  },
+  "minTransfer": {
+   "value": "2",
+   "unit": "µL",
+   "defaulted": false
+  },
+  "capacity": {
+   "value": "",
+   "unit": ""
+  },
+  "components": [
+   {
+    "label": "At 50",
+    "intended": {
+     "value": "0.5",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "0.5",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "50",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   },
+   {
+    "label": "At 100",
+    "intended": {
+     "value": "0.5",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "0.5",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "100",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   }
+  ]
+ },
+ "expect": {
+  "status": "result",
+  "basisRequired": true,
+  "flagCodes": {
+   "C5-FL-01": [
+    1
+   ],
+   "C5-FL-08": [
+    1,
+    2
+   ]
+  },
+  "values": {
+   "components[0].volumePerTest_uL": 2,
+   "components[0].ratio": {
+    "value": 1
+   }
+  }
+ }
+}

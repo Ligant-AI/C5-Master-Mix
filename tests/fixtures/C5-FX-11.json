@@ -1,0 +1,132 @@
+{
+ "id": "C5-FX-11",
+ "title": "Established volume not recorded",
+ "standard": "C5-FL-02; ratio withheld, never 1; named unevaluated; named separately under C5-CP-07",
+ "assumptions": {
+  "exactTiesAtDisplayedPrecision": false,
+  "powerOfTwoRatios": false,
+  "symmetricInputs": false,
+  "note": "Recorded components all at the assay volume, so C5-FL-08 is not raised but component 3 is still recorded as unevaluated."
+ },
+ "ui": false,
+ "input": {
+  "dispensed": {
+   "value": "50",
+   "unit": "µL"
+  },
+  "residual": {
+   "value": "50",
+   "unit": "µL"
+  },
+  "assayCells": {
+   "value": "1000000",
+   "unit": "cells"
+  },
+  "samples": "96",
+  "overage": {
+   "form": "additional-tests",
+   "value": "4",
+   "unit": ""
+  },
+  "basis": "",
+  "diluent": {
+   "notRecorded": false,
+   "text": "PBS, 2% FBS"
+  },
+  "minTransfer": {
+   "value": "2",
+   "unit": "µL",
+   "defaulted": false
+  },
+  "capacity": {
+   "value": "",
+   "unit": ""
+  },
+  "components": [
+   {
+    "label": "A",
+    "intended": {
+     "value": "0.5",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "0.5",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "100",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   },
+   {
+    "label": "B",
+    "intended": {
+     "value": "0.25",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "0.5",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "100",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   },
+   {
+    "label": "C",
+    "intended": {
+     "value": "0.1",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "0.2",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "notRecorded": true
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   }
+  ]
+ },
+ "expect": {
+  "status": "result",
+  "basisRequired": false,
+  "flagCodes": {
+   "C5-FL-02": [
+    3
+   ]
+  },
+  "flagsAbsent": [
+   "C5-FL-08"
+  ],
+  "values": {
+   "fl08Unevaluated": [
+    3
+   ],
+   "components[2].ratio": {
+    "withheld": true,
+    "reason": "C5-FL-02"
+   },
+   "components[2].basisApplied": "not-applied"
+  }
+ }
+}
