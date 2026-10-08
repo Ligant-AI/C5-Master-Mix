@@ -12,12 +12,12 @@ export const TOLERANCES = Object.freeze({
   roundTrip: Object.freeze({
     relative: 2 ** -48, // 16 units in the last place of a double
     status: 'PROVISIONAL',
-    basis: 'Open item 5. Placeholder: 16 ULP, above the few roundings on the path a → v → V → recomputed concentration, pending the analytic bound.',
+    basis: 'PROVISIONAL, to be derived. Placeholder: 16 ULP, above the few roundings on the path a → v → V → recomputed concentration, pending the analytic bound.',
   }),
   unitNormalisation: Object.freeze({
     relative: 2 ** -48,
     status: 'PROVISIONAL',
-    basis: 'Open item 5. Placeholder: 16 ULP. Normalisation is one rounding of the exact typed value (Task 4 ruling 1), so entries of the same quantity in different units give the same double; the bound covers the path after it.',
+    basis: 'PROVISIONAL, to be derived. Placeholder: 16 ULP. Normalisation is one rounding of the exact typed value, so entries of the same quantity in different units give the same double; the bound covers the path after it.',
   }),
 });
 
