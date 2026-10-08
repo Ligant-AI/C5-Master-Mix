@@ -1,5 +1,5 @@
 $ node verification/mutation/run.mjs
-unmutated: pass 158, fail 0
+unmutated: pass 159, fail 0
 caught   rounding: a half rounds down (decimal.js): fail 8 | ties round half away from zero, in both signs; C5-FX-01: Non-round panel, hand calculation (Hand calculation to displayed precision under C5-UN-06); C5-FX-04: High antibody fraction, small diluent (C5-IV-01 and C5-DT-04); exact binary ties round half away from zero; values stored just below a decimal tie round down; just above, up; carries inside a decade, at 3, 5 and 6 significant figures, at several decades; every significant-figure boundary from 1e-12 to 1e12, at 3 and 6 significant figures; the same rule on 200 000 doubles across 40 decades, at 3 and 6 significant figures
 caught   comparison: a half rounds toward zero at the resolution: fail 4 | roundHalfAwayToInteger: half away from zero, in both signs; C5-UN-10: canonical volumes at 1 nL; C5-UN-10: canonical cell numbers at 1 cell; C5-UN-10: equality decides on the canonical integer, never on a double
 caught   normalisation by double multiplication: fail 2 | C5-FX-13: measurement; C5-UN-03: normalisation is one rounding of the exact typed value
