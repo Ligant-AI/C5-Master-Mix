@@ -2,7 +2,7 @@
 
 **For:** Claude Code (the builder)
 **From:** Adacs, lead engineer and reviewer, relayed by A.B. (A. Modi, owner)
-**Date:** 5 October 2026
+**Date:** 5 October 2026, revised 7 October 2026 after the Task 2 report
 **Release:** 1.0
 
 Save this file as `CLAUDE.md` at the root of the C5 repository, so that every session reads it.
@@ -34,7 +34,7 @@ If this guide seems to conflict with the URS, the URS wins. Stop and report the 
 2. **Never resolve an ambiguity in code.** If a requirement can be read two ways, stop, write the question in your task report with the requirement ID, and build the parts that do not depend on it.
 3. **Never weaken a test to make it pass.** Do not loosen a tolerance, delete an assertion or skip a case. A failing test is a finding: report it.
 4. **Do not edit the files Adacs supplies:** `tests/fixtures/`, `reimpl/` and `docs/`. If you believe one is wrong, report it.
-5. **No new runtime dependencies** without asking. The C7 lineage has none, and C5 should not either.
+5. **No new runtime dependencies** without asking. The only runtime dependency is the vendored `@ligant/bench-chrome` 1.1.0 tarball carried unchanged from C7 (sha256 `1ca3a885…c197a`). Do not modify that package.
 6. **Report raw output, never a summary.** Paste every command and its complete output exactly as printed. Summaries hide what the reviewer needs to see.
 7. **Anything touching analytics, the consent banner, the security headers or the privacy text: ask first.** These carry public claims.
 
@@ -75,6 +75,9 @@ Treat these as settled. Do not revisit them.
 | Overage forms | **All three forms are built:** percentage, additional tests, dead volume. Open item 3 may later remove one | URS C5-OV-01 |
 | Display precision | Volumes 3 significant figures, concentrations 6, rounding half away from zero on the exact binary value | C5-UN-04, 05, 06 |
 | Pipetting order | Diluent first, then components in the order entered | C5-DT-05 |
+| Frame verification | The frame is verified on the production preview, not the dev server: `npm run build && npm run preview -- --port 4175 --strictPort`. On the dev server the CSP blocks Vite's injected styles, as on C7; that is expected and the CSP is **not** changed for it | Adacs, 7 Oct 2026 |
+| Consent banner | Appears only on `*.ligant.ai` and `*.pages.dev`, as on C7. It is checked on a hosted preview at deploy, not locally | Adacs, 7 Oct 2026 |
+| Suite navigation | Lives in `@ligant/bench-chrome`. Do not change the package. Adding Master Mix to the suite navigation is a suite-level decision for A.B., outside this build | Adacs, 7 Oct 2026 |
 
 ---
 
@@ -273,14 +276,15 @@ The concentration-type quantity with SV not recorded is Q1, and the stock-volume
 
 ### 5.5 Display (Task 6)
 
-- Reuse C7's `format.js` for half-away-from-zero rounding on the exact binary value, with its tests. Report any change you need to make to it.
+- Reuse C7's `numfmt.js` and `decimal.js` for half-away-from-zero rounding on the exact binary value. (C7's `format.js` is its notebook renderer and is not reused.) C7 has no standalone rounding tests, so Task 4 adds them: exact binary ties, values just below a decimal tie (for example 2.675, which is stored below 2.675), and each significant-figure boundary.
+- C7's directed-rounding functions (`roundDecDirected`, `sigDirected`, `signedPctUp`, `gridDistance`) serve the upper-bound path, which is deferred. Remove them. Keep `parseEntered`; Task 4 reviews it against §5.3.
 - Each pipetted volume is rounded from its own unrounded value (C5-DT-04).
 - **The displayed total is the exact decimal sum of the displayed pipetted volumes** (C5-DT-04, C5-IV-01). Sum the displayed decimals with exact decimal arithmetic, not floats, and display that sum. It may carry more digits than 3 significant figures; that is correct.
 - Every ratio, factor and fraction is stated in the direction of its physical consequence and labelled with the two quantities it compares (C5-DT-06). Half the established concentration reads as a ratio below 1.
 
 ### 5.6 Structured result (Task 7)
 
-- Use the shared format in C7's `src/shared/result-object.js`. Copy it rather than reinventing it.
+- C7's `src/shared/result-object.js` is C7-specific (tool ID, codes, schema `2.0.0-draft.c7`, bound label). Build C5's object on the same structure, with C5's codes and a C5 schema identifier. **If no tool-independent shared format exists for C5 to validate against (acceptance 4), that is the C5-OUT-03 escalation: stop and report in Task 7.**
 - Every quantity carries its unit and its unrounded value (C5-UN-07).
 - Flag scope must resolve to individual components (C5-OUT-03).
 - It must express cell number and residual volume, with zero distinct from blank. **If the shared format cannot express these, stop and report. Do not extend it locally** (C5-OUT-03).
@@ -305,7 +309,7 @@ Copy C7's frame unchanged: the header, the tool navigation, the footer, the cons
 - `<title>`: "Ligant · Master Mix";
 - product and tool identification exactly as C5-NF-10 states.
 
-Add Master Mix to the shared tool navigation only if C7's chrome supports that without modification. If it needs modification, ask.
+Do not add Master Mix to the shared tool navigation; see §1.
 
 ### 6.2 Form (Task 8)
 
@@ -419,7 +423,7 @@ Each task: build, run the listed checks, report in the §0.4 shape, and wait for
 
 Leave the server running.
 
-**Adacs checks in Chrome:** the frame matches C7, the navigation renders, the banner behaves as on C7, and the CSP is identical in effect.
+**Adacs checks in Chrome:** the frame on the production preview (port 4175) matches C7, and the CSP is identical in effect. The banner is checked at deploy.
 
 ### Task 3: Layout measurement (build gate)
 
