@@ -21,7 +21,7 @@ const typed = (v) => (TYPED && v.length < TYPED ? (v.includes('.') ? v : `${v}.`
 
 // A placeholder of C7's tagline length (262 characters), so the header is as
 // tall as it will be once A.B.'s wording is supplied.
-const TAGLINE = 'Placeholder for the Master Mix tagline, pending A.B.\'s wording. It is set to the length of C7\'s tagline, 262 characters, so that the header measured here is as tall as the real one will be. Nothing in this sentence describes the tool, and none of it will ship as-is.';
+const TAGLINE = 'Placeholder for the Master Mix tagline, pending A.B.\'s wording. It is set to the length of C7\'s tagline, 262 characters, so that the header measured here is as tall as the real one will be. Nothing in this sentence describes the tool, and none of it ships as-is.';
 
 const MARKERS = ['CD3', 'CD4', 'CD8', 'CD45RA', 'CCR7', 'CD27', 'CD28', 'CD95', 'CD127', 'CD25', 'CXCR5', 'PD-1', 'ICOS', 'CD38', 'HLA-DR', 'CD14', 'CD16', 'CD56', 'CD19', 'CD20', 'IgD', 'CD24', 'CD11c', 'CD123', 'CD1c', 'CD141', 'TCRγδ', 'Vδ2', 'CD161', 'CCR6', 'CXCR3', 'CCR4', 'KLRG1', 'CD57', 'TIGIT', 'LAG-3', 'TIM-3', 'CD39', 'CD73', 'CD69', 'CD103', 'CD45', 'CD2', 'CD7', 'NKG2A', 'NKG2C', 'CD94', 'CD62L', 'CD31', 'IgM', 'IgG', 'CD10', 'CD21', 'CD86', 'CD80', 'CD40', 'FcεRI', 'CD117', 'CD34', 'Live/Dead'];
 const FLUORS = ['BUV395', 'BUV496', 'BUV563', 'BUV615', 'BUV661', 'BUV737', 'BUV805', 'BV421', 'Pacific Blue', 'BV480', 'BV510', 'BV570', 'BV605', 'BV650', 'BV711', 'BV750', 'BV785', 'BB515', 'Alexa Fluor 488', 'Spark Blue 550', 'PerCP', 'PerCP-eFluor 710', 'PE', 'PE-CF594', 'PE-Cy5', 'PE-Cy5.5', 'PE-Cy7', 'APC', 'Alexa Fluor 647', 'APC-R700', 'APC-Fire 750', 'APC-Cy7'];

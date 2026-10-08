@@ -12,6 +12,9 @@
 // field whose text is cut off by its width.
 //
 //   node verification/layout/measure.mjs [base]   default http://localhost:4175/verification/layout/mock.html
+//   node verification/layout/measure.mjs --width=1351 [base]
+//     The same cases at a narrower layout width, for a browser that shows a
+//     classic scrollbar (about 15 px) inside the 1366 px window.
 //   node verification/layout/measure.mjs --negative-control [base]
 //     Takes the block out of sticky positioning (through the CSSOM, which the
 //     CSP permits) and runs one case. It must report violations and exit 1;
@@ -21,7 +24,8 @@ import { chromium } from 'playwright';
 const args = process.argv.slice(2);
 const NEGATIVE = args.includes('--negative-control');
 const base = args.find((a) => !a.startsWith('--')) || 'http://localhost:4175/verification/layout/mock.html';
-const VIEW = { width: 1366, height: 650 };
+const widthArg = args.find((a) => a.startsWith('--width='));
+const VIEW = { width: widthArg ? Number(widthArg.slice(8)) : 1366, height: 650 };
 const STEP = 50;
 const ALL_CASES = [
   ...[4, 10, 20, 30, 40].map((n) => ({ case: `all ten flags, N=${n}`, query: `n=${n}` })),
@@ -74,6 +78,15 @@ try {
           // the text area of a select: its width less padding, border and the arrow (about 18 px)
           return w > el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 18;
         }).map((el) => `${el.closest('tr').dataset.component}: ${el.value}`),
+        // Spare width on the widest flag line: its column's content width less
+        // the width of its text, so a longer label is known to stay on one line.
+        flagLineMinHeadroomPx: Math.min(...[...document.querySelectorAll('[data-flag]')].map((li) => {
+          const range = document.createRange(); range.selectNodeContents(li);
+          const cs = getComputedStyle(li);
+          return li.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - range.getBoundingClientRect().width;
+        })),
+        flagLinesWrapped: [...document.querySelectorAll('[data-flag]')].filter((li) => li.getBoundingClientRect().height > 30).map((li) => li.dataset.flag),
+        layoutWidthPx: innerWidth,
         declarations: document.querySelectorAll('[data-decl]').length,
         flags: document.querySelectorAll('[data-flag]').length,
         components: document.querySelectorAll('#components-body tr').length,
@@ -125,6 +138,9 @@ try {
       rowsVisibleAtOnce: Math.floor(viewportLeftForComponentsPx / m.componentRowHeightPx),
       totalPageHeightPx: m.totalPageHeightPx,
       vz03HeightPx: m.vz03HeightPx,
+      layoutWidthPx: m.layoutWidthPx,
+      flagLineMinHeadroomPx: m.flagLineMinHeadroomPx,
+      flagLinesWrapped: m.flagLinesWrapped,
       horizontalOverflowPx: m.horizontalOverflowPx,
       truncatedFields: m.truncatedFields,
       stepsTotal: ys.length,
