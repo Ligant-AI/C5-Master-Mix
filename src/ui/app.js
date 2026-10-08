@@ -23,7 +23,8 @@ const $ = (id) => document.getElementById(id);
 const panelEl = (name) => document.querySelector(`#panel-fields [data-field="${name}"]`);
 
 let nextId = 1;
-const rows = []; // [{ id, data, controlled }]
+const rows = []; // [{ id, data, controlled, retained }]
+const CONTROL_NAME = 'All components established at these assay conditions';
 let minTouched = false;
 let lastRecord = null;
 
@@ -111,10 +112,11 @@ function compute() {
     $('result-table').innerHTML = resultTable(rec);
     $('pipetting-list').innerHTML = pipettingHtml(rec);
     $('visuals').innerHTML = visualsHtml(rec);
-    $('derivation').innerHTML = derivationHtml(rec);
+    $('derivation').innerHTML = derivationHtml(rec, { retained: rows.flatMap((r, i) => (r.retained ? [i + 1] : [])) });
   } else {
     for (const id of ['result-table', 'pipetting-list', 'visuals', 'derivation']) $(id).innerHTML = '';
   }
+  markRetained();
   $('object-text').textContent = JSON.stringify(rec, null, 2);
   $('notebook-text').value = notebookText(rec);
   $('bench-sheet').innerHTML = benchSheetHtml(rec, result ? visualsHtml(rec, 'bench-') : '');
@@ -137,6 +139,7 @@ function onRowInput(e) {
   if (applyRowField(r.data, name, e.target)) {
     // An established value changed by hand: the row leaves the panel control.
     r.controlled = false;
+    r.retained = false;
     r.data.declaredByPanelControl = false;
     const base = name.split('.')[0];
     const valueEl = tr.querySelector(`[data-field="${base}.value"]`);
@@ -152,7 +155,7 @@ function addComponent() {
     return;
   }
   $('cap-message').textContent = '';
-  rows.push({ id: nextId++, data: emptyComponent(), controlled: $('panel-control').checked });
+  rows.push({ id: nextId++, data: emptyComponent(), controlled: $('panel-control').checked, retained: false });
   renderRows();
   compute();
 }
@@ -167,10 +170,38 @@ function onRowClick(e) {
   compute();
 }
 
+// Unticked, the control stops setting rows; each value it set is kept and
+// visibly marked as retained (C5-ST-07) until the row is changed by hand.
 function onPanelControl() {
-  if ($('panel-control').checked) for (const r of rows) r.controlled = true;
-  else for (const r of rows) r.controlled = false;
+  if ($('panel-control').checked) for (const r of rows) { r.controlled = true; r.retained = false; }
+  else for (const r of rows) { r.retained = r.controlled && r.data.declaredByPanelControl; r.controlled = false; }
   compute();
+}
+
+// C5-ST-07: "any value retained shall be visibly marked as retained". Each
+// retained established volume and cell number has a dashed outline and its
+// own "retained" label; a note names the control it came from.
+function markRetained() {
+  const any = rows.some((r) => r.retained);
+  $('retained-note').hidden = !any;
+  $('retained-note').textContent = any ? `Retained from "${CONTROL_NAME}" (unticked): the established staining volumes and cell numbers marked "retained" were set by that control before it was unticked. Changing a value in a row removes its mark.` : '';
+  rows.forEach((r, i) => {
+    const tr = document.querySelector(`#components-body tr[data-row="${i + 1}"]`);
+    if (!tr) return;
+    tr.toggleAttribute('data-retained', r.retained);
+    for (const base of ['establishedVolume', 'establishedCells']) {
+      const td = tr.querySelector(`[data-field="${base}.value"]`).closest('td');
+      for (const el of td.querySelectorAll('[data-field]')) el.classList.toggle('retained', r.retained);
+      let mark = td.querySelector('.retained-mark');
+      if (r.retained && !mark) {
+        mark = document.createElement('span');
+        mark.className = 'retained-mark';
+        mark.setAttribute('data-retained-mark', base);
+        mark.textContent = 'retained, control unticked';
+        td.appendChild(mark);
+      } else if (!r.retained && mark) mark.remove();
+    }
+  });
 }
 
 async function copyNotebook() {
@@ -204,7 +235,7 @@ function init() {
   $('mm-form').reset();
   $('panel-fields').innerHTML = panelFieldsHtml();
   $('components-head').innerHTML = `<tr>${ROW_HEADINGS.map((h) => `<th>${esc(h)}</th>`).join('')}</tr>`;
-  rows.push({ id: nextId++, data: emptyComponent(), controlled: false });
+  rows.push({ id: nextId++, data: emptyComponent(), controlled: false, retained: false });
   renderRows();
 
   $('panel-fields').addEventListener('input', onPanelInput);
