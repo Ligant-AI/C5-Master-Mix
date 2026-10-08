@@ -11,6 +11,7 @@ import { sig, Dec } from '../src/engine/numfmt.js';
 import { quantity } from '../src/engine/units.js';
 import { TOLERANCES, relativeDifference } from '../src/engine/tolerances.js';
 import { randomPanel } from './helpers/panels.js';
+import { iv03 } from './helpers/invariance.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const contract = readFileSync(path.join(ROOT, 'docs/engine-io.md'), 'utf8');
@@ -103,49 +104,16 @@ test('C5-IV-02: the total cocktail volume is the dispensed volume times the effe
   t.diagnostic(`largest |diluent in cocktail − diluent per test × N_eff| ÷ total: ${worst} (tolerance ${TOLERANCES.roundTrip.relative}, PROVISIONAL)`);
 });
 
-// The concentration a component was meant to reach in the assay, from its
-// typed quantity and the declared basis (C5-DT-03), and the concentration
-// recomputed from the volume actually pipetted into the cocktail.
-// The form and the basis are derived here from the input, not read from the
-// engine's output, so a defect that applies the wrong one cannot move the
-// target with it.
-function expectedFormAndBasis(input, comp) {
-  const kind = quantity(comp.intended.value, comp.intended.unit).kind;
-  const form = { amount: 'amount', concentration: 'concentration', volume: 'stock-volume' }[kind];
-  const basis = comp.establishedVolume.notRecorded ? 'not-applied' : input.basis || 'not-required';
-  return { form, basis };
-}
-function target(input, comp) {
-  const { form, basis } = expectedFormAndBasis(input, comp);
-  const q = quantity(comp.intended.value, comp.intended.unit);
-  const c = quantity(comp.stock.value, comp.stock.unit).value;
-  const D = quantity(input.dispensed.value, input.dispensed.unit).value;
-  const SV = D + quantity(input.residual.value, input.residual.unit).value;
-  const SVi = comp.establishedVolume.notRecorded ? null : quantity(comp.establishedVolume.value, comp.establishedVolume.unit).value;
-  const amountPerTest = { amount: q.value, concentration: SVi === null ? null : q.value * SVi, 'stock-volume': c * q.value }[form];
-  if (basis === 'preserve-concentration' || basis === 'not-required') return amountPerTest / SVi;
-  return amountPerTest / SV; // preserve amount, or the basis not applied: the amount per test is carried
-}
-
 test('C5-IV-03: target concentration → volume → recomputed concentration, for every component', (t) => {
   let worst = 0;
   let n = 0;
   for (const { seed, input, result } of PANELS) {
-    const v = result.values;
-    const D = quantity(input.dispensed.value, 'µL').value;
-    for (const out of v.components) {
-      const comp = input.components[out.index - 1];
-      const expected = expectedFormAndBasis(input, comp);
-      assert.equal(out.form, expected.form, `seed ${seed}, component ${out.index}: form`);
-      assert.equal(out.basisApplied, expected.basis, `seed ${seed}, component ${out.index}: basis`);
-      const want = target(input, comp);
-      const c = quantity(comp.stock.value, comp.stock.unit).value;
-      // Each test receives D of the cocktail, of which the component is V_i / total.
-      const recomputed = (c * (out.volumeInCocktail_uL / v.totalCocktail_uL) * D) / v.svAssay_uL;
-      const d = Math.max(relativeDifference(recomputed, want), relativeDifference(out.concentrationInAssay.value, want));
-      worst = Math.max(worst, d);
+    for (const c of iv03(input, result, relativeDifference)) {
+      assert.equal(c.form, c.expectedForm, `seed ${seed}, component ${c.index}: form`);
+      assert.equal(c.basis, c.expectedBasis, `seed ${seed}, component ${c.index}: basis`);
+      worst = Math.max(worst, c.difference);
       n++;
-      assert.ok(d <= TOLERANCES.roundTrip.relative, `seed ${seed}, component ${out.index}: ${d}`);
+      assert.ok(c.difference <= TOLERANCES.roundTrip.relative, `seed ${seed}, component ${c.index}: ${c.difference}`);
     }
   }
   t.diagnostic(`${n} components; largest relative difference from the target: ${worst} (tolerance ${TOLERANCES.roundTrip.relative}, PROVISIONAL)`);
