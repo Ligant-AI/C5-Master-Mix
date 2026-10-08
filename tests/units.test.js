@@ -134,11 +134,15 @@ test('C5-CP-01 and C5-CP-09: every intended-quantity unit against every stock un
   const amounts = UNITS.filter((x) => x.kind === KIND.AMOUNT);
   const concs = UNITS.filter((x) => x.kind === KIND.CONCENTRATION);
   for (const q of [...amounts, ...concs]) {
-    for (const s of UNITS) {
+    for (const s of concs) {
       const r = reduction(q.symbol, s.symbol);
-      const same = s.kind === KIND.CONCENTRATION && s.dimension === q.dimension;
+      const same = s.dimension === q.dimension;
       assert.equal(r.reducible, same, `${q.symbol} against ${s.symbol}`);
       if (same) assert.equal(r.form, q.kind === KIND.AMOUNT ? 'amount' : 'concentration');
+    }
+    // A stock unit that is not a concentration is not offered by the page.
+    for (const s of UNITS.filter((x) => x.kind !== KIND.CONCENTRATION)) {
+      assert.throws(() => reduction(q.symbol, s.symbol), /not a stock concentration unit/, `${q.symbol} against ${s.symbol}`);
     }
     assert.deepEqual(reduction(q.symbol, null), { reducible: null, missing: 'stock concentration' });
   }
@@ -147,8 +151,8 @@ test('C5-CP-01 and C5-CP-09: every intended-quantity unit against every stock un
     assert.deepEqual(reduction(v, null), { reducible: true, form: 'stock-volume' });
     assert.deepEqual(reduction(v, 'mg/mL'), { reducible: true, form: 'stock-volume' });
   }
-  // A cell number is never an intended quantity.
-  assert.equal(reduction('cells', 'mg/mL').reducible, false);
+  // A cell number is never an intended quantity; the page does not offer it.
+  assert.throws(() => reduction('cells', 'mg/mL'), /not an intended-quantity unit/);
 });
 
 test('C5-FX-27: IU against IU/mL is accepted and reduced to a volume, the unit carried', () => {
@@ -163,20 +167,20 @@ test('C5-FX-27: IU against U/mL is rejected per C5-HI-05, naming both units', ()
   assert.equal(r.component, 'IL-2');
   assert.deepEqual(r.units, ['IU', 'U/mL']);
   assert.match(r.message, /"IL-2"/);
-  assert.match(r.message, /in IU \(activity \(IU\)\)/);
-  assert.match(r.message, /in U\/mL \(activity \(U\) per volume\)/);
+  assert.match(r.message, /in IU \(activity in IU\)/);
+  assert.match(r.message, /in U\/mL \(activity in U per volume\)/);
   assert.match(r.message, /IU and U are different units of activity and are never converted/);
-  assert.match(r.message, /is not performed here/);
+  assert.match(r.message, /Conversion between activity in IU and activity in U is not performed here\./);
 });
 
 test('C5-FX-27: IU against mg/mL is rejected per C5-HI-05, naming both units', () => {
   const r = rejectionHI05('IL-2', 'IU', 'mg/mL');
   assert.equal(r.code, 'C5-HI-05');
   assert.deepEqual(r.units, ['IU', 'mg/mL']);
-  assert.match(r.message, /in IU \(activity \(IU\)\)/);
+  assert.match(r.message, /in IU \(activity in IU\)/);
   assert.match(r.message, /in mg\/mL \(mass per volume\)/);
   assert.match(r.message, /specific activity, which is not supplied or inferred/);
-  assert.match(r.message, /is not performed here/);
+  assert.match(r.message, /Conversion between activity in IU and mass is not performed here\./);
 });
 
 test('C5-HI-05: mass against molar, and the reverse, names the molecular weight it would need', () => {
@@ -184,12 +188,8 @@ test('C5-HI-05: mass against molar, and the reverse, names the molecular weight 
     const r = rejectionHI05('CD3 BUV395', q, s);
     assert.deepEqual(r.units, [q, s]);
     assert.match(r.message, /molecular weight, which is not supplied or inferred/);
+    assert.match(r.message, /Conversion between (mass and molar amount|molar amount and mass) is not performed here\./);
   }
-});
-
-test('C5-HI-05: a stock entered as an amount, not a concentration, is named as such', () => {
-  const r = rejectionHI05('CD4', 'µg', 'mg');
-  assert.match(r.message, /not a concentration/);
 });
 
 test('rejectionHI05 refuses a reducible pair', () => {

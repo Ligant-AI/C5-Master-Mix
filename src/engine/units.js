@@ -30,8 +30,8 @@ export const DIMENSION = Object.freeze({
   CELLS: 'cells',
   MASS: 'mass',
   MOLAR: 'molar amount',
-  IU: 'activity (IU)',
-  U: 'activity (U)',
+  IU: 'activity in IU',
+  U: 'activity in U',
 });
 
 // What a unit measures: an amount of a substance, a concentration of one, a
@@ -182,12 +182,16 @@ export function sumVolumes(a, b) {
 export function reduction(intendedUnit, stockUnit) {
   const q = BY_SYMBOL.get(intendedUnit);
   if (!q) throw new Error(`units: unknown unit "${intendedUnit}"`);
+  // The intended quantity is offered only in amount, concentration and volume
+  // units, and the stock only in concentration units: anything else is a
+  // defect in the page, like an unknown unit, not an input to report.
+  if (q.kind === KIND.CELLS) throw new Error(`units: "${intendedUnit}" is not an intended-quantity unit`);
   if (q.kind === KIND.VOLUME) return { reducible: true, form: 'stock-volume' };
-  if (q.kind === KIND.CELLS) return { reducible: false, intended: q, stock: stockUnit ? BY_SYMBOL.get(stockUnit) || null : null };
   if (!stockUnit) return { reducible: null, missing: 'stock concentration' };
   const s = BY_SYMBOL.get(stockUnit);
   if (!s) throw new Error(`units: unknown unit "${stockUnit}"`);
-  if (s.kind === KIND.CONCENTRATION && s.dimension === q.dimension) {
+  if (s.kind !== KIND.CONCENTRATION) throw new Error(`units: "${stockUnit}" is not a stock concentration unit`);
+  if (s.dimension === q.dimension) {
     return { reducible: true, form: q.kind === KIND.AMOUNT ? 'amount' : 'concentration' };
   }
   return { reducible: false, intended: q, stock: s };
@@ -197,15 +201,12 @@ const describe = (x) => (x.kind === KIND.CONCENTRATION ? `${x.dimension} per vol
 
 // Why a pair of dimensions cannot be reduced here, stated for the pair.
 function mismatchReason(q, s) {
-  if (!s) return 'a cell number is not a quantity of a reagent';
   const dims = new Set([q.dimension, s.dimension]);
   if (dims.has(DIMENSION.IU) && dims.has(DIMENSION.U)) return 'IU and U are different units of activity and are never converted into one another';
   if (dims.has(DIMENSION.MASS) && dims.has(DIMENSION.MOLAR)) return 'converting between mass and molar amount needs a molecular weight, which is not supplied or inferred here';
   if ([...dims].some((d) => d === DIMENSION.IU || d === DIMENSION.U) && (dims.has(DIMENSION.MASS) || dims.has(DIMENSION.MOLAR))) {
     return 'converting between activity and mass or molar amount needs a specific activity, which is not supplied or inferred here';
   }
-  if (s.kind !== KIND.CONCENTRATION) return 'a stock is described by its concentration, and this unit is not a concentration';
-  if (q.kind === KIND.CELLS) return 'a cell number is not a quantity of a reagent';
   return 'the two units are of different dimensions';
 }
 
@@ -219,12 +220,11 @@ export function rejectionHI05(label, intendedUnit, stockUnit) {
   if (r.reducible !== false) throw new Error('rejectionHI05: the quantity is reducible');
   const q = r.intended;
   const s = r.stock;
-  const stockPart = s ? `the stock concentration is in ${s.symbol} (${describe(s)})` : 'no stock concentration can make it a volume of stock';
   return Object.freeze({
     code: 'C5-HI-05',
     component: label,
-    units: s ? [q.symbol, s.symbol] : [q.symbol],
-    message: `Component "${label}": the intended quantity is in ${q.symbol} (${describe(q)}) and ${stockPart}. It cannot be reduced to a volume of its stock: ${mismatchReason(q, s)}. Conversion between ${describe(q)} and ${s ? describe(s) : 'a volume of stock'} is not performed here.`,
+    units: [q.symbol, s.symbol],
+    message: `Component "${label}": the intended quantity is in ${q.symbol} (${describe(q)}) and the stock concentration is in ${s.symbol} (${describe(s)}). It cannot be reduced to a volume of its stock: ${mismatchReason(q, s)}. Conversion between ${q.dimension} and ${s.dimension} is not performed here.`,
   });
 }
 
