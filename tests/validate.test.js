@@ -336,3 +336,13 @@ test('no rejection anywhere in this file was C5-HI-07', () => {
   assert.ok(seen.size > 5);
   assert.ok(!seen.has('C5-HI-07'));
 });
+
+test('a value held under a pending branch drives no decision: a held established volume does not demand a basis (Task 6c ruling 1)', () => {
+  const r = run((p) => { p.components[1].establishedVolume = { value: '0', unit: 'µL' }; });
+  assert.deepEqual(codes(r), [PENDING.Q4]);
+  assert.deepEqual(r.incomplete, []);
+  assert.equal(r.basisRequired, false);
+  // A held volume beside a valid one that differs: the valid one still decides.
+  const q = run((p) => { p.components[1].establishedVolume = { value: '0', unit: 'µL' }; p.components[0].establishedVolume = { value: '50', unit: 'µL' }; });
+  assert.equal(q.basisRequired, true);
+});

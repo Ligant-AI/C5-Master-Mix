@@ -43,7 +43,8 @@ const MUTATIONS = [
   ['Q2 not held without a stock concentration', 'src/engine/validate.js', "c.intended.kind === KIND.VOLUME && c.stock.status === 'blank') {", "c.intended.kind === KIND.VOLUME && false) {"],
   ['Q4: zero established staining volume not held', 'src/engine/validate.js', 'c.estVolume.sign <= 0', 'c.estVolume.sign < 0'],
   ['rejections not in table order', 'src/engine/validate.js', "  const status = rejections.length ?", "  rejections.reverse();\n  const status = rejections.length ?"],
-  ['C5-CP-07: basis requirement decided on doubles', 'src/engine/validate.js', 'basisRequired = recorded.some((c) => !equalUnderRule(svAssay, c.estVolume));', 'basisRequired = recorded.some((c) => svAssay.value !== c.estVolume.value);'],
+  ['C5-CP-07: a held (≤ 0) established volume drives the basis requirement', 'src/engine/validate.js', 'recorded.filter((c) => c.estVolume.sign > 0).some(', 'recorded.some('],
+  ['C5-CP-07: basis requirement decided on doubles', 'src/engine/validate.js', '.some((c) => !equalUnderRule(svAssay, c.estVolume));', '.some((c) => svAssay.value !== c.estVolume.value);'],
   // Task 6b
   ['diluent per test not the literal 0 when the components fill the dispense', 'src/engine/determine.js', 'const diluentPerTest = fills ? 0 : D - sumV;', 'const diluentPerTest = D - sumV;'],
   ['diluent in the cocktail not the literal 0 when the components fill the dispense', 'src/engine/determine.js', 'const diluentTotal = fills ? 0 : totalCocktail - sumCocktail;', 'const diluentTotal = totalCocktail - sumCocktail;'],

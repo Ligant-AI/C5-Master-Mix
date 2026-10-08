@@ -252,15 +252,17 @@ export function validate(inputs) {
   // Required wherever a recorded component's established staining volume
   // differs from the assay's under C5-UN-10. Undetermined (null) while the
   // assay staining volume or a recorded volume is not yet usable, or while
-  // either of its terms is rejected (HI-11, HI-08): a demand derived from a
-  // rejected volume would be noise.
+  // either of its terms is rejected (HI-11, HI-08). A value that is rejected
+  // or held never drives a decision (Task 6c review, ruling 1): only recorded
+  // volumes that are valid and above zero take part, so a volume held under
+  // PENDING-Q4 does not demand a basis.
   let basisRequired = null;
   let svAssay = null;
   if (isUsable(D) && D.sign > 0 && isUsable(R) && R.sign >= 0) {
     svAssay = sumVolumes(D, R);
     const recorded = components.filter((c) => c.estVolume !== 'not-recorded');
     if (recorded.every((c) => isUsable(c.estVolume))) {
-      basisRequired = recorded.some((c) => !equalUnderRule(svAssay, c.estVolume));
+      basisRequired = recorded.filter((c) => c.estVolume.sign > 0).some((c) => !equalUnderRule(svAssay, c.estVolume));
     }
   }
   if (basisRequired === true && !basis) {
