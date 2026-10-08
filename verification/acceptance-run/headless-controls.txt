@@ -1,6 +1,8 @@
 $ node verification/mutation/headless-controls.mjs
 detected form.mjs --only=panel-control: the panel control also sets provenance
 detected form.mjs --only=panel-control-unchecked: unchecked, the panel control keeps following the assay
+detected form.mjs --only=panel-control-retained: retained values are kept but not marked
+detected outputs.mjs --only=clipboard: the copy leaves out the flags
 detected form.mjs --only=basis-gating: the cocktail is shown while the basis is required and unselected
 detected form.mjs --only=recompute: a stale result table survives a declaration change
 detected form.mjs --only=required: a blank sample count is read as 96
@@ -17,5 +19,5 @@ detected outputs.mjs --only=print-notebook: the bench sheet leaves out the flags
 detected outputs.mjs --only=acceptance-14: the C5-CP-07 names line is not shown
 detected outputs.mjs --only=acceptance-21: a register row is not shown
 detected outputs.mjs --only=print-paint: the original defect: segment paint scoped to .visuals, so the bench sheet falls back to default black
-18 controls, 18 detected
+20 controls, 20 detected
 exit=0
