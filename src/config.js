@@ -24,7 +24,7 @@ export const CONFIG = Object.freeze({
   doi: null,
   citationAuthor: 'Modi, A.B.',
   citationYear: '2026',
-  // The header's tagline and standfirst are product text, and none has been given
-  // for C5. Left empty rather than written here.
-  tagline: '',
+  // The paragraph under the h1, as C7's. Approved by A.B., 8 October 2026
+  // (Task 12); 262 characters, the length the Task 3 layout was measured with.
+  tagline: 'The volume of each antibody and the diluent in a master mix, for the samples, overage, staining volume and cell number you declare. Every value is computed deterministically by arithmetic you can read. No model and no inference is applied to any reported number.',
 });
