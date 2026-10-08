@@ -47,6 +47,7 @@ const MUTATIONS = [
   // Task 6b
   ['diluent per test not the literal 0 when the components fill the dispense', 'src/engine/determine.js', 'const diluentPerTest = fills ? 0 : D - sumV;', 'const diluentPerTest = D - sumV;'],
   ['diluent in the cocktail not the literal 0 when the components fill the dispense', 'src/engine/determine.js', 'const diluentTotal = fills ? 0 : totalCocktail - sumCocktail;', 'const diluentTotal = totalCocktail - sumCocktail;'],
+  ['sum of volumes per test not checked for finiteness', 'src/engine/determine.js', "if (!Number.isFinite(sumV)) return notRepresentable", "if (false) return notRepresentable"],
   ['C5-HI-06 not applied by determine', 'src/engine/determine.js', 'if (hi06) return nonResult', 'if (false) return nonResult'],
   ['preserve-amount ratio computed when the volumes are equal', 'src/engine/determine.js', '{ value: equalUnderRule(c.estVolume, svAssay) ? 1 : c.estVolume.value / SV }', '{ value: c.estVolume.value / SV }'],
   ['overage fraction as (N_eff - n) / n', 'src/engine/determine.js', 'overageFraction = p.overage.value / 100;', 'overageFraction = (nEff - n) / n;'],

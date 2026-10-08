@@ -83,32 +83,47 @@ test('C5-FX-04-style: a high antibody fraction with a small diluent, where the r
   assert.notEqual(list.total_uL, sig(r.values.totalCocktail_uL, 3));
 });
 
-test('C5-IV-02: the total cocktail volume is the dispensed volume times the effective test count, and the parts add up to it', (t) => {
+test('C5-IV-02: the total cocktail volume is the dispensed volume times the effective test count, and the diluent agrees with it', (t) => {
+  // Under the contract, total = D × N_eff and diluent in the cocktail =
+  // total − ΣV by definition, so those two relations hold by construction and
+  // cannot fail. The check that can: the diluent in the cocktail against the
+  // diluent per test times N_eff. A defect in a component's cocktail volume
+  // moves one and not the other. The bound is relative to the total, because
+  // total − ΣV cancels when the diluent is small.
   let worst = 0;
-  for (const { seed, result } of PANELS) {
+  for (const { seed, input, result } of PANELS) {
     const v = result.values;
-    const D = quantity(PANELS.find((x) => x.seed === seed).input.dispensed.value, 'µL').value;
+    const D = quantity(input.dispensed.value, input.dispensed.unit).value;
     assert.equal(v.totalCocktail_uL, D * v.nEff);
-    let parts = v.diluentTotal_uL;
-    for (const c of v.components) parts += c.volumeInCocktail_uL;
-    const d = relativeDifference(parts, v.totalCocktail_uL);
+    if (v.componentsFillDispensedVolume) continue;
+    const d = Math.abs(v.diluentTotal_uL - v.diluentPerTest_uL * v.nEff) / v.totalCocktail_uL;
     worst = Math.max(worst, d);
     assert.ok(d <= TOLERANCES.roundTrip.relative, `seed ${seed}: ${d}`);
   }
-  t.diagnostic(`largest relative difference of (diluent + components) from the total: ${worst} (tolerance ${TOLERANCES.roundTrip.relative}, PROVISIONAL)`);
+  t.diagnostic(`largest |diluent in cocktail − diluent per test × N_eff| ÷ total: ${worst} (tolerance ${TOLERANCES.roundTrip.relative}, PROVISIONAL)`);
 });
 
 // The concentration a component was meant to reach in the assay, from its
 // typed quantity and the declared basis (C5-DT-03), and the concentration
 // recomputed from the volume actually pipetted into the cocktail.
-function target(input, comp, out) {
+// The form and the basis are derived here from the input, not read from the
+// engine's output, so a defect that applies the wrong one cannot move the
+// target with it.
+function expectedFormAndBasis(input, comp) {
+  const kind = quantity(comp.intended.value, comp.intended.unit).kind;
+  const form = { amount: 'amount', concentration: 'concentration', volume: 'stock-volume' }[kind];
+  const basis = comp.establishedVolume.notRecorded ? 'not-applied' : input.basis || 'not-required';
+  return { form, basis };
+}
+function target(input, comp) {
+  const { form, basis } = expectedFormAndBasis(input, comp);
   const q = quantity(comp.intended.value, comp.intended.unit);
   const c = quantity(comp.stock.value, comp.stock.unit).value;
   const D = quantity(input.dispensed.value, input.dispensed.unit).value;
   const SV = D + quantity(input.residual.value, input.residual.unit).value;
   const SVi = comp.establishedVolume.notRecorded ? null : quantity(comp.establishedVolume.value, comp.establishedVolume.unit).value;
-  const amountPerTest = { amount: q.value, concentration: SVi === null ? null : q.value * SVi, 'stock-volume': c * q.value }[out.form];
-  if (out.basisApplied === 'preserve-concentration' || out.basisApplied === 'not-required') return amountPerTest / SVi;
+  const amountPerTest = { amount: q.value, concentration: SVi === null ? null : q.value * SVi, 'stock-volume': c * q.value }[form];
+  if (basis === 'preserve-concentration' || basis === 'not-required') return amountPerTest / SVi;
   return amountPerTest / SV; // preserve amount, or the basis not applied: the amount per test is carried
 }
 
@@ -120,7 +135,10 @@ test('C5-IV-03: target concentration → volume → recomputed concentration, fo
     const D = quantity(input.dispensed.value, 'µL').value;
     for (const out of v.components) {
       const comp = input.components[out.index - 1];
-      const want = target(input, comp, out);
+      const expected = expectedFormAndBasis(input, comp);
+      assert.equal(out.form, expected.form, `seed ${seed}, component ${out.index}: form`);
+      assert.equal(out.basisApplied, expected.basis, `seed ${seed}, component ${out.index}: basis`);
+      const want = target(input, comp);
       const c = quantity(comp.stock.value, comp.stock.unit).value;
       // Each test receives D of the cocktail, of which the component is V_i / total.
       const recomputed = (c * (out.volumeInCocktail_uL / v.totalCocktail_uL) * D) / v.svAssay_uL;
@@ -163,9 +181,17 @@ test('C5-IV-06: the same panel in other units of the same families agrees within
     const toMl = (x) => ({ value: Dec.toString(Dec.shift(Dec.fromString(x.value), -3)), unit: 'mL' });
     q.dispensed = toMl(q.dispensed); q.residual = toMl(q.residual);
     q.minTransfer = toMl(q.minTransfer);
-    q.assayCells = { value: Dec.toString(Dec.shift(Dec.fromString(q.assayCells.value), -6)), unit: '× 10⁶ cells' };
+    const otherCells = (x) => (x.unit === 'cells'
+      ? { value: Dec.toString(Dec.shift(Dec.fromString(x.value), -6)), unit: '× 10⁶ cells' }
+      : { value: Dec.toString(Dec.shift(Dec.fromString(x.value), 6)), unit: 'cells' });
+    q.assayCells = otherCells(q.assayCells);
+    if (q.overage.form === 'dead-volume') q.overage = { form: 'dead-volume', ...toMl(q.overage) };
+    if (q.capacity.value) q.capacity = { value: Dec.toString(Dec.shift(Dec.fromString(q.capacity.value), 3)), unit: 'µL' };
     for (const c of q.components) {
       if (!c.establishedVolume.notRecorded) c.establishedVolume = toMl(c.establishedVolume);
+      if (!c.establishedCells.notRecorded) c.establishedCells = otherCells(c.establishedCells);
+      if (c.intended.unit === 'µL') c.intended = toMl(c.intended);
+      // IU, U, IU/mL and U/mL have no second unit in the catalogue, so they stay as entered.
       const swap = { µg: ['ng', 3], pmol: ['nmol', -3], 'mg/mL': ['µg/mL', 3], 'µM': ['nM', 3], 'IU/mL': null, 'U/mL': null, 'µg/mL': ['ng/mL', 3] };
       for (const k of ['intended', 'stock']) {
         const s = swap[c[k].unit];
@@ -335,4 +361,11 @@ test('C5-FL-08 names unevaluated components, and values.fl08Unevaluated is prese
   const q = determine(p);
   assert.equal(q.flags.find((f) => f.code === 'C5-FL-08'), undefined);
   assert.deepEqual(q.values.fl08Unevaluated, [3]);
+});
+
+test('finite volumes per test whose sum is beyond a double is incomplete with its reason, never a crash', () => {
+  const r = determine(onePanel([['1e308', 'µg', '1'], ['1e308', 'µg', '1', 'B']]));
+  assert.equal(r.status, 'incomplete');
+  assert.equal(r.incomplete[0].reason, 'unrepresentable');
+  assert.match(r.incomplete[0].message, /^The total volume of the components per test is outside the range/);
 });
