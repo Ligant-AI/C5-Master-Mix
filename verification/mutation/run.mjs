@@ -73,6 +73,9 @@ const MUTATIONS = [
   ['record: a flag\'s component scope dropped', 'src/engine/result.js', 'record.flags = r.flags.map((f) => JSON.parse(JSON.stringify(f)));', 'record.flags = r.flags.map((f) => ({ ...JSON.parse(JSON.stringify(f)), components: [] }));'],
   ['record: a typed zero recorded as blank', 'src/engine/result.js', "if (value.trim() === '') return { state: 'blank', unit };\n  const q", "if (value.trim() === '' || value.trim() === '0') return { state: 'blank', unit };\n  const q"],
   ['record: the selected stock unit dropped', 'src/engine/result.js', ': { value: c.concentrationInAssay.value, unit: c.concentrationInAssay.unit, stockUnit: decl.components[c.index - 1].stock.unit },', ': { value: c.concentrationInAssay.value, unit: c.concentrationInAssay.unit, stockUnit: c.concentrationInAssay.unit },'],
+  // Task 13
+  ['notebook copy: the overage unit doubled ("10 % %")', 'src/ui/render.js', "  L.push(`  Overage: ${d.overage.form ? OVERAGE[d.overage.form] : '—'}, ${typed(d.overage)}`);", "  L.push(`  Overage: ${d.overage.form ? OVERAGE[d.overage.form] : '—'}, ${typed(d.overage)}${d.overage.form === 'percentage' ? ' %' : ''}`);"],
+  ['page: flag statements left out under the names', 'src/ui/render.js', "    + `<p class=\"flag-names-line\"><span class=\"code\">${t.code}</span><strong>${esc(t.title)}.</strong> ${esc(t.statement)}</p>`", "    + `<p class=\"flag-names-line\"><span class=\"code\">${t.code}</span><strong>${esc(t.title)}.</strong></p>`"],
   ['blank residual treated as zero', 'src/engine/validate.js', 'const R = read(inputs.residual, KIND.VOLUME);', "const R = read(inputs.residual && inputs.residual.value === '' ? { ...inputs.residual, value: '0' } : inputs.residual, KIND.VOLUME);"],
 ];
 

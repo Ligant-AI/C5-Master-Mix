@@ -234,6 +234,28 @@ try {
     await context.close();
   }
 
+  // ---- acceptance 26: the notebook copy on the clipboard (Task 13, item 6) -----------------
+  if (want('clipboard')) {
+    const results = [];
+    for (const id of ['C5-FX-01', 'C5-FX-11b', 'C5-FX-16']) {
+      const context = await browser.newContext({ viewport: VIEW, permissions: ['clipboard-read', 'clipboard-write'] });
+      const page = await context.newPage();
+      await page.goto(base, { waitUntil: 'networkidle' });
+      await fill(page, fx(id).input);
+      const rendered = await page.evaluate(() => document.getElementById('notebook-text').value);
+      const shown = await page.evaluate(() => !document.getElementById('outputs').hidden);
+      let clip = null;
+      if (shown) {
+        await page.locator('#copy-notebook').click();
+        await page.waitForFunction(() => /Copied/.test(document.getElementById('copy-status').textContent));
+        clip = await page.evaluate(() => navigator.clipboard.readText());
+      }
+      results.push({ fixture: id, copyButtonShown: shown, clipboardEqualsNotebookCopy: shown ? clip === rendered : null, characters: clip ? clip.length : 0 });
+      await context.close();
+    }
+    report('acceptance 26: "Copy for notebook" puts exactly the rendered notebook copy on the clipboard', results.filter((r) => r.copyButtonShown).length >= 2 && results.every((r) => !r.copyButtonShown || r.clipboardEqualsNotebookCopy), { results });
+  }
+
   // ---- the paint of every visual, printed and on the page (C5-VZ-07, VZ-08; acceptance 30) ------
   if (want('print-paint')) {
     const results = [];

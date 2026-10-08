@@ -99,6 +99,45 @@ try {
     await context.close();
   }
 
+  // ---- the panel control unticked: retained values marked (C5-ST-07; Task 13, item 3) ----
+  if (want('panel-control-retained')) {
+    const { context, page } = await fresh();
+    const p = clone(fixture('C5-FX-01'));
+    p.dispensed = { value: '50', unit: 'µL' };
+    p.residual = { value: '20', unit: 'µL' };
+    for (const c of p.components) { c.establishedVolume = { value: '', unit: '' }; c.establishedCells = { value: '', unit: '' }; }
+    await fill(page, p);
+    const marks = () => page.evaluate(() => [...document.querySelectorAll('#components-body tr')].map((tr) => ({
+      labels: [...tr.querySelectorAll('.retained-mark')].filter((m) => m.offsetParent !== null && /retained/.test(m.textContent)).length,
+      outlined: [...tr.querySelectorAll('[data-field^="established"]')].filter((el) => el.classList.contains('retained') && getComputedStyle(el).borderStyle.includes('dashed')).length,
+    })));
+    await page.locator('#panel-control').check();
+    const whileTicked = await marks();
+    await page.locator('#panel-control').uncheck();
+    const unticked = await marks();
+    const note = await page.evaluate(() => { const n = document.getElementById('retained-note'); return n.hidden ? '' : n.textContent; });
+    const derivation = await page.evaluate(() => [...document.querySelectorAll('#derivation dd')].map((d) => d.textContent).filter((t) => /later unticked/.test(t)).length);
+    // An override by hand, to the assay's own volume, so the cocktail is still computed and the derivation shown.
+    await rowField(page, 2, 'establishedVolume.value').fill('70.0');
+    const overridden = await marks();
+    const derivationAfter = await page.evaluate(() => [...document.querySelectorAll('#derivation dd')].map((d) => d.textContent).filter((t) => /later unticked/.test(t)).length);
+    await page.locator('#panel-control').check();
+    const reticked = await marks();
+    const n = unticked.length;
+    const ok = whileTicked.every((m) => m.labels === 0 && m.outlined === 0)
+      && unticked.every((m) => m.labels === 2 && m.outlined === 4)
+      && /Retained from "All components established at these assay conditions" \(unticked\)/.test(note)
+      && derivation === n
+      && overridden[1].labels === 0 && overridden[1].outlined === 0 && overridden.filter((m, i) => i !== 1).every((m) => m.labels === 2)
+      && derivationAfter === n - 1
+      && reticked.every((m) => m.labels === 0);
+    report('panel control unticked: each retained value visibly marked, the derivation says so, an override removes the mark', ok, {
+      marksWhileTicked: whileTicked, marksAfterUnticking: unticked, note, derivationLinesSayingUnticked: derivation,
+      marksAfterRow2Overridden: overridden, derivationLinesAfterOverride: derivationAfter, marksAfterReticking: reticked,
+    });
+    await context.close();
+  }
+
   // ---- basis gating (C5-CP-07, C5-ST-07) -------------------------------------------
   if (want('basis-gating')) {
     const { context, page } = await fresh();
