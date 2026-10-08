@@ -8,13 +8,18 @@
 // at least partly in the viewport, every declaration item and every flag line
 // must be fully inside the viewport and not covered by anything else
 // (elementFromPoint at its centre). One JSON line per case. Exit 1 on any
-// violation, any console error, any horizontal overflow at 1366 px, or any row
-// field whose text is cut off by its width.
+// violation, any console error, any horizontal overflow, any row field whose
+// text is cut off by its width, a bounded block taller than BLOCK_BOUND_PX
+// (C5-NF-05, A.B.'s ruling of the Task 3 review), or less than MIN_SLACK_PX of
+// horizontal slack for the component table at SLACK_WIDTH_PX (Task 3 review,
+// ruling 6: room for a classic scrollbar).
 //
 //   node verification/layout/measure.mjs [base]   default http://localhost:4175/verification/layout/mock.html
 //   node verification/layout/measure.mjs --width=1351 [base]
 //     The same cases at a narrower layout width, for a browser that shows a
 //     classic scrollbar (about 15 px) inside the 1366 px window.
+//   node verification/layout/measure.mjs --query=<mock query> [base]
+//     One ad-hoc case instead of the set, e.g. --query=n=40&diluent=2000.
 //   node verification/layout/measure.mjs --negative-control [base]
 //     Takes the block out of sticky positioning (through the CSSOM, which the
 //     CSP permits) and runs one case. It must report violations and exit 1;
@@ -27,6 +32,9 @@ const base = args.find((a) => !a.startsWith('--')) || 'http://localhost:4175/ver
 const widthArg = args.find((a) => a.startsWith('--width='));
 const VIEW = { width: widthArg ? Number(widthArg.slice(8)) : 1366, height: 650 };
 const STEP = 50;
+const BLOCK_BOUND_PX = 260;
+const SLACK_WIDTH_PX = 1351;
+const MIN_SLACK_PX = 16;
 const ALL_CASES = [
   ...[4, 10, 20, 30, 40].map((n) => ({ case: `all ten flags, N=${n}`, query: `n=${n}` })),
   // The diluent is the one free-text declaration in the block. Recording one
@@ -34,10 +42,13 @@ const ALL_CASES = [
   { case: 'nine flags, recorded diluent of 140 characters, N=40', query: 'n=40&diluent=140' },
   { case: 'nine flags, recorded diluent of 400 characters, N=40', query: 'n=40&diluent=400' },
   { case: 'nine flags, diluent of 400 characters, every typed number 15 characters, N=40', query: 'n=40&diluent=400&typed=15' },
-  // Beyond the requested counts, for the cap.
+  // The maximum component count (Task 3 review, ruling 3). Permanent.
   { case: 'all ten flags, N=60', query: 'n=60' },
 ];
-const CASES = NEGATIVE ? [{ case: 'NEGATIVE CONTROL: block not sticky, all ten flags, N=40', query: 'n=40' }] : ALL_CASES;
+const queryArg = args.find((a) => a.startsWith('--query='));
+const CASES = NEGATIVE ? [{ case: 'NEGATIVE CONTROL: block not sticky, all ten flags, N=40', query: 'n=40' }]
+  : queryArg ? [{ case: `ad hoc: ${queryArg.slice(8)}`, query: queryArg.slice(8) }]
+    : ALL_CASES;
 
 const browser = await chromium.launch();
 let failed = false;
@@ -92,6 +103,18 @@ try {
         components: document.querySelectorAll('#components-body tr').length,
       };
     });
+    // The table's horizontal slack at SLACK_WIDTH_PX: the content width
+    // available to it less its own max-content width.
+    const slackPage = await browser.newPage({ viewport: { width: SLACK_WIDTH_PX, height: VIEW.height } });
+    await slackPage.goto(`${base}?${c.query}`, { waitUntil: 'networkidle' });
+    await slackPage.waitForFunction(() => document.documentElement.dataset.mockReady === '1');
+    const slackAtWidthPx = await slackPage.evaluate(() => {
+      const t = document.getElementById('components'); const host = t.parentElement; const cs = getComputedStyle(host);
+      const available = host.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      t.style.width = 'max-content'; const natural = t.getBoundingClientRect().width; t.style.width = '';
+      return available - natural;
+    });
+    await slackPage.close();
     const viewportLeftForComponentsPx = VIEW.height - m.stickyTopPx - m.blockHeightPx - m.columnHeadingsHeightPx;
 
     const maxY = m.totalPageHeightPx - VIEW.height;
@@ -142,6 +165,9 @@ try {
       flagLineMinHeadroomPx: m.flagLineMinHeadroomPx,
       flagLinesWrapped: m.flagLinesWrapped,
       horizontalOverflowPx: m.horizontalOverflowPx,
+      blockBoundPx: BLOCK_BOUND_PX,
+      blockWithinBound: m.blockHeightPx <= BLOCK_BOUND_PX,
+      tableSlackPx: { atWidthPx: SLACK_WIDTH_PX, slackPx: slackAtWidthPx, minimumPx: MIN_SLACK_PX, ok: slackAtWidthPx >= MIN_SLACK_PX },
       truncatedFields: m.truncatedFields,
       stepsTotal: ys.length,
       stepsChecked,
@@ -149,7 +175,8 @@ try {
       violations,
     };
     console.log(JSON.stringify(line));
-    if (violations.length || errors.length || m.horizontalOverflowPx > 0 || m.truncatedFields.length) failed = true;
+    if (violations.length || errors.length || m.horizontalOverflowPx > 0 || m.truncatedFields.length
+      || m.blockHeightPx > BLOCK_BOUND_PX || slackAtWidthPx < MIN_SLACK_PX) failed = true;
     await page.close();
   }
 } finally {
