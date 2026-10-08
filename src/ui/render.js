@@ -134,11 +134,19 @@ export function pipettingHtml(rec) {
 
 // ---- the derivation (C5-DT-02, C5-OUT-01, C5-OUT-02) ----------------------------------
 /**
- * `ui.retained`: the rows whose established values were set by the panel
- * control and kept after it was unticked (C5-ST-07), from the form's state.
+ * `ui.retained`: per row, the established values set by the panel control and
+ * kept after it was unticked (C5-ST-07), from the form's state:
+ * [{ index, fields: ['establishedVolume', 'establishedCells'] }].
  */
+const RETAINED_WORDS = { establishedVolume: 'established staining volume', establishedCells: 'established cell number' };
 export function derivationHtml(rec, ui = {}) {
-  const retained = new Set(ui.retained || []);
+  const retained = new Map((ui.retained || []).map((x) => [x.index, x.fields]));
+  const retainedText = (i) => {
+    const fields = retained.get(i);
+    if (!fields) return '';
+    const what = fields.map((f) => RETAINED_WORDS[f]).join(' and ');
+    return ` (${what} set through "All components established at these assay conditions"; the control was later unticked, and ${fields.length === 1 ? 'the value is' : 'the values are'} retained)`;
+  };
   const d = rec.declarations;
   const v = rec.values;
   const conc = concentrations(rec);
@@ -152,7 +160,7 @@ export function derivationHtml(rec, ui = {}) {
     h(`Assay cell number per test: ${typed(d.assayCells)}. Number of samples n: ${typed(d.samples)}.`),
     h(`Overage: ${d.overage.form ? OVERAGE[d.overage.form] : '—'}, ${d.overage.state === 'entered' ? `${d.overage.value}${d.overage.form === 'percentage' ? ' %' : d.overage.form === 'dead-volume' ? ` ${d.overage.unit}` : ''}` : '—'}.`),
     h(`Diluent: ${d.diluent.state === 'entered' ? d.diluent.text : 'not recorded'}. Minimum reliable transfer volume: ${typed(d.minTransfer)} (${d.minTransfer.source === 'defaulted' ? 'suggested default, not changed' : 'entered'}). Vessel working capacity: ${typed(d.capacity)}.`),
-    ...d.components.map((c) => ({ component: c.index, html: esc(`${componentName(rec, c.index)}: intended ${typed(c.intended)} per test; stock ${typed(c.stock)}; established at ${typed(c.establishedVolume)} and ${typed(c.establishedCells)}${c.declaredByPanelControl ? (retained.has(c.index) ? ' (set through "All components established at these assay conditions"; the control was later unticked, and the values are retained)' : ' (declared through "All components established at these assay conditions")') : ''}; provenance ${PROVENANCE[c.provenance.value] || '—'}; transport ${c.transport}.`) })),
+    ...d.components.map((c) => ({ component: c.index, html: esc(`${componentName(rec, c.index)}: intended ${typed(c.intended)} per test; stock ${typed(c.stock)}; established at ${typed(c.establishedVolume)} and ${typed(c.establishedCells)}${retained.has(c.index) ? retainedText(c.index) : c.declaredByPanelControl ? ' (declared through "All components established at these assay conditions")' : ''}; provenance ${PROVENANCE[c.provenance.value] || '—'}; transport ${c.transport}.`) })),
   ]));
   const nEffRel = { percentage: `N_eff = n × (1 + p ÷ 100) = ${typed(d.samples)} × (1 + ${d.overage.value} ÷ 100)`, 'additional-tests': `N_eff = n + k = ${typed(d.samples)} + ${d.overage.value}`, 'dead-volume': `N_eff = n + V_dead ÷ D = ${typed(d.samples)} + ${typed(d.overage)} ÷ ${typed(d.dispensed)}` }[d.overage.form];
   const fracRel = { percentage: 'p ÷ 100', 'additional-tests': 'k ÷ n (additional tests ÷ samples)', 'dead-volume': 'V_dead ÷ (n × D)' }[d.overage.form];

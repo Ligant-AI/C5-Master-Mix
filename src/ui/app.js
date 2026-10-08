@@ -23,7 +23,13 @@ const $ = (id) => document.getElementById(id);
 const panelEl = (name) => document.querySelector(`#panel-fields [data-field="${name}"]`);
 
 let nextId = 1;
-const rows = []; // [{ id, data, controlled, retained }]
+// Per row, and per established field (volume, cell number), the panel control's
+// state: ctl, it is setting the field while ticked; set, the field's value is
+// the one it set; kept, that value is retained after it was unticked (C5-ST-07).
+const rows = []; // [{ id, data, ctl, set, kept }]
+const FIELDS = ['establishedVolume', 'establishedCells'];
+const perField = (v) => ({ establishedVolume: v, establishedCells: v });
+const newRow = (controlled) => ({ id: nextId++, data: emptyComponent(), ctl: perField(controlled), set: perField(false), kept: perField(false) });
 const CONTROL_NAME = 'All components established at these assay conditions';
 let minTouched = false;
 let lastRecord = null;
@@ -64,18 +70,22 @@ function applyPanelControl() {
     return;
   }
   status.textContent = `Established at ${a.volume.value} µL and ${a.cells.value} ${a.cells.unit} on every row set by the panel control; any row can be changed by hand.`;
+  const values = { establishedVolume: a.volume, establishedCells: a.cells };
   rows.forEach((r, i) => {
-    if (!r.controlled) return;
-    r.data.establishedVolume = { value: a.volume.value, unit: a.volume.unit };
-    r.data.establishedCells = { value: a.cells.value, unit: a.cells.unit };
-    r.data.declaredByPanelControl = true;
     const tr = document.querySelector(`#components-body tr[data-row="${i + 1}"]`);
-    if (!tr) return;
-    for (const [f, v] of [['establishedVolume.value', a.volume.value], ['establishedVolume.unit', a.volume.unit], ['establishedCells.value', a.cells.value], ['establishedCells.unit', a.cells.unit]]) {
-      const el = tr.querySelector(`[data-field="${f}"]`);
-      el.disabled = false;
-      el.value = v;
+    for (const f of FIELDS) {
+      if (!r.ctl[f]) continue;
+      r.data[f] = { value: values[f].value, unit: values[f].unit };
+      r.set[f] = true;
+      if (!tr) continue;
+      for (const [part, v] of [['value', values[f].value], ['unit', values[f].unit]]) {
+        const el = tr.querySelector(`[data-field="${f}.${part}"]`);
+        el.disabled = false;
+        el.value = v;
+      }
     }
+    // Recorded as declared through the control while both established values are its own.
+    r.data.declaredByPanelControl = r.set.establishedVolume && r.set.establishedCells;
   });
 }
 
@@ -112,7 +122,10 @@ function compute() {
     $('result-table').innerHTML = resultTable(rec);
     $('pipetting-list').innerHTML = pipettingHtml(rec);
     $('visuals').innerHTML = visualsHtml(rec);
-    $('derivation').innerHTML = derivationHtml(rec, { retained: rows.flatMap((r, i) => (r.retained ? [i + 1] : [])) });
+    $('derivation').innerHTML = derivationHtml(rec, { retained: rows.flatMap((r, i) => {
+      const fields = FIELDS.filter((f) => r.kept[f]);
+      return fields.length ? [{ index: i + 1, fields }] : [];
+    }) });
   } else {
     for (const id of ['result-table', 'pipetting-list', 'visuals', 'derivation']) $(id).innerHTML = '';
   }
@@ -137,11 +150,13 @@ function onRowInput(e) {
   if (!tr || !name) return;
   const r = rows[Number(tr.dataset.row) - 1];
   if (applyRowField(r.data, name, e.target)) {
-    // An established value changed by hand: the row leaves the panel control.
-    r.controlled = false;
-    r.retained = false;
-    r.data.declaredByPanelControl = false;
+    // An established value changed by hand: that field, and only that field,
+    // leaves the panel control and loses its retained mark.
     const base = name.split('.')[0];
+    r.ctl[base] = false;
+    r.set[base] = false;
+    r.kept[base] = false;
+    r.data.declaredByPanelControl = r.set.establishedVolume && r.set.establishedCells;
     const valueEl = tr.querySelector(`[data-field="${base}.value"]`);
     valueEl.disabled = !!r.data[base].notRecorded;
     if (r.data[base].notRecorded) valueEl.value = '';
@@ -155,7 +170,7 @@ function addComponent() {
     return;
   }
   $('cap-message').textContent = '';
-  rows.push({ id: nextId++, data: emptyComponent(), controlled: $('panel-control').checked, retained: false });
+  rows.push(newRow($('panel-control').checked));
   renderRows();
   compute();
 }
@@ -171,10 +186,14 @@ function onRowClick(e) {
 }
 
 // Unticked, the control stops setting rows; each value it set is kept and
-// visibly marked as retained (C5-ST-07) until the row is changed by hand.
+// visibly marked as retained (C5-ST-07) until that field is changed by hand.
 function onPanelControl() {
-  if ($('panel-control').checked) for (const r of rows) { r.controlled = true; r.retained = false; }
-  else for (const r of rows) { r.retained = r.controlled && r.data.declaredByPanelControl; r.controlled = false; }
+  const on = $('panel-control').checked;
+  for (const r of rows) {
+    for (const f of FIELDS) {
+      if (on) { r.ctl[f] = true; r.kept[f] = false; } else { r.kept[f] = r.ctl[f] && r.set[f]; r.ctl[f] = false; }
+    }
+  }
   compute();
 }
 
@@ -182,24 +201,24 @@ function onPanelControl() {
 // retained established volume and cell number has a dashed outline and its
 // own "retained" label; a note names the control it came from.
 function markRetained() {
-  const any = rows.some((r) => r.retained);
+  const any = rows.some((r) => FIELDS.some((f) => r.kept[f]));
   $('retained-note').hidden = !any;
-  $('retained-note').textContent = any ? `Retained from "${CONTROL_NAME}" (unticked): the established staining volumes and cell numbers marked "retained" were set by that control before it was unticked. Changing a value in a row removes its mark.` : '';
+  $('retained-note').textContent = any ? `Retained from "${CONTROL_NAME}" (unticked): the established staining volumes and cell numbers marked "retained" were set by that control before it was unticked. Changing a value removes its mark.` : '';
   rows.forEach((r, i) => {
     const tr = document.querySelector(`#components-body tr[data-row="${i + 1}"]`);
     if (!tr) return;
-    tr.toggleAttribute('data-retained', r.retained);
-    for (const base of ['establishedVolume', 'establishedCells']) {
+    for (const base of FIELDS) {
+      const kept = r.kept[base];
       const td = tr.querySelector(`[data-field="${base}.value"]`).closest('td');
-      for (const el of td.querySelectorAll('[data-field]')) el.classList.toggle('retained', r.retained);
+      for (const el of td.querySelectorAll('[data-field]')) el.classList.toggle('retained', kept);
       let mark = td.querySelector('.retained-mark');
-      if (r.retained && !mark) {
+      if (kept && !mark) {
         mark = document.createElement('span');
         mark.className = 'retained-mark';
         mark.setAttribute('data-retained-mark', base);
         mark.textContent = 'retained, control unticked';
         td.appendChild(mark);
-      } else if (!r.retained && mark) mark.remove();
+      } else if (!kept && mark) mark.remove();
     }
   });
 }
@@ -235,7 +254,7 @@ function init() {
   $('mm-form').reset();
   $('panel-fields').innerHTML = panelFieldsHtml();
   $('components-head').innerHTML = `<tr>${ROW_HEADINGS.map((h) => `<th>${esc(h)}</th>`).join('')}</tr>`;
-  rows.push({ id: nextId++, data: emptyComponent(), controlled: false, retained: false });
+  rows.push(newRow(false));
   renderRows();
 
   $('panel-fields').addEventListener('input', onPanelInput);
