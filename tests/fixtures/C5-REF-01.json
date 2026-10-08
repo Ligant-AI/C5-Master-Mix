@@ -1,0 +1,146 @@
+{
+ "id": "C5-REF-01",
+ "title": "Reference four-component cocktail (acceptance 1)",
+ "standard": "Acceptance 1: hand calculation to displayed precision, tie properties recorded",
+ "assumptions": {
+  "exactTiesAtDisplayedPrecision": false,
+  "powerOfTwoRatios": false,
+  "symmetricInputs": false,
+  "note": "Round panel: every cocktail volume (100, 50, 250, 80 uL) and the diluent (4520 uL) is an exact integer, so none lies at or near a 3 s.f. tie; the stock ratios 0.25/0.5 and 0.2/0.25 are not powers of two except 0.5. N_eff = 96 + 4 = 100. All at the assay conditions; no flags."
+ },
+ "ui": false,
+ "input": {
+  "dispensed": {
+   "value": "50",
+   "unit": "µL"
+  },
+  "residual": {
+   "value": "50",
+   "unit": "µL"
+  },
+  "assayCells": {
+   "value": "1000000",
+   "unit": "cells"
+  },
+  "samples": "96",
+  "overage": {
+   "form": "additional-tests",
+   "value": "4",
+   "unit": ""
+  },
+  "basis": "",
+  "diluent": {
+   "notRecorded": false,
+   "text": "PBS, 2% FBS"
+  },
+  "minTransfer": {
+   "value": "2",
+   "unit": "µL",
+   "defaulted": false
+  },
+  "capacity": {
+   "value": "",
+   "unit": ""
+  },
+  "components": [
+   {
+    "label": "CD3",
+    "intended": {
+     "value": "0.5",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "0.5",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "100",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   },
+   {
+    "label": "CD4",
+    "intended": {
+     "value": "0.25",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "0.5",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "100",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   },
+   {
+    "label": "CD8",
+    "intended": {
+     "value": "1",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "0.4",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "100",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   },
+   {
+    "label": "CD19",
+    "intended": {
+     "value": "0.2",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "0.25",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "100",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   }
+  ]
+ },
+ "expect": {
+  "status": "result",
+  "flags": [],
+  "display3sf": {
+   "volumeInCocktail_uL": [
+    "100",
+    "50.0",
+    "250",
+    "80.0"
+   ],
+   "diluentTotal_uL": "4520",
+   "displayedTotal_uL": "5000.0"
+  }
+ }
+}
