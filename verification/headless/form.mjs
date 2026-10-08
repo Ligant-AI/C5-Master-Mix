@@ -107,33 +107,39 @@ try {
     p.residual = { value: '20', unit: 'µL' };
     for (const c of p.components) { c.establishedVolume = { value: '', unit: '' }; c.establishedCells = { value: '', unit: '' }; }
     await fill(page, p);
-    const marks = () => page.evaluate(() => [...document.querySelectorAll('#components-body tr')].map((tr) => ({
-      labels: [...tr.querySelectorAll('.retained-mark')].filter((m) => m.offsetParent !== null && /retained/.test(m.textContent)).length,
-      outlined: [...tr.querySelectorAll('[data-field^="established"]')].filter((el) => el.classList.contains('retained') && getComputedStyle(el).borderStyle.includes('dashed')).length,
-    })));
+    // Per field: each established value's own "retained" label and dashed outline.
+    const marks = () => page.evaluate(() => [...document.querySelectorAll('#components-body tr')].map((tr) => Object.fromEntries(['establishedVolume', 'establishedCells'].map((f) => {
+      const td = tr.querySelector(`[data-field="${f}.value"]`).closest('td');
+      const label = [...td.querySelectorAll('.retained-mark')].some((m) => m.offsetParent !== null && /retained/.test(m.textContent));
+      const outlined = [...td.querySelectorAll('[data-field]')].every((el) => el.classList.contains('retained') && getComputedStyle(el).borderStyle.includes('dashed'));
+      return [f === 'establishedVolume' ? 'volume' : 'cells', label && outlined];
+    }))));
     await page.locator('#panel-control').check();
     const whileTicked = await marks();
     await page.locator('#panel-control').uncheck();
     const unticked = await marks();
     const note = await page.evaluate(() => { const n = document.getElementById('retained-note'); return n.hidden ? '' : n.textContent; });
-    const derivation = await page.evaluate(() => [...document.querySelectorAll('#derivation dd')].map((d) => d.textContent).filter((t) => /later unticked/.test(t)).length);
-    // An override by hand, to the assay's own volume, so the cocktail is still computed and the derivation shown.
+    const derivation = await page.evaluate(() => [...document.querySelectorAll('#derivation dd')].map((d) => d.textContent).filter((t) => /later unticked/.test(t)));
+    // Override row 2's established staining volume only, by hand, to the assay's own
+    // volume (so the cocktail is still computed): its cell number is still the value
+    // retained from the control, and keeps its mark (Task 13 review, C5-ST-07).
     await rowField(page, 2, 'establishedVolume.value').fill('70.0');
     const overridden = await marks();
-    const derivationAfter = await page.evaluate(() => [...document.querySelectorAll('#derivation dd')].map((d) => d.textContent).filter((t) => /later unticked/.test(t)).length);
+    const derivationAfter = await page.evaluate(() => [...document.querySelectorAll('#derivation dd')].map((d) => d.textContent).filter((t) => /later unticked/.test(t)));
     await page.locator('#panel-control').check();
     const reticked = await marks();
     const n = unticked.length;
-    const ok = whileTicked.every((m) => m.labels === 0 && m.outlined === 0)
-      && unticked.every((m) => m.labels === 2 && m.outlined === 4)
+    const ok = whileTicked.every((m) => !m.volume && !m.cells)
+      && unticked.every((m) => m.volume && m.cells)
       && /Retained from "All components established at these assay conditions" \(unticked\)/.test(note)
-      && derivation === n
-      && overridden[1].labels === 0 && overridden[1].outlined === 0 && overridden.filter((m, i) => i !== 1).every((m) => m.labels === 2)
-      && derivationAfter === n - 1
-      && reticked.every((m) => m.labels === 0);
-    report('panel control unticked: each retained value visibly marked, the derivation says so, an override removes the mark', ok, {
-      marksWhileTicked: whileTicked, marksAfterUnticking: unticked, note, derivationLinesSayingUnticked: derivation,
-      marksAfterRow2Overridden: overridden, derivationLinesAfterOverride: derivationAfter, marksAfterReticking: reticked,
+      && derivation.length === n
+      && overridden[1].volume === false && overridden[1].cells === true
+      && overridden.filter((m, i) => i !== 1).every((m) => m.volume && m.cells)
+      && derivationAfter.length === n && /established cell number set through/.test(derivationAfter[1]) && !/established staining volume and/.test(derivationAfter[1])
+      && reticked.every((m) => !m.volume && !m.cells);
+    report('panel control unticked: each retained value visibly marked, the derivation says so, an override removes only that field\'s mark', ok, {
+      marksWhileTicked: whileTicked, marksAfterUnticking: unticked, note, derivationLinesSayingUnticked: derivation.length,
+      marksAfterRow2VolumeOverridden: overridden, row2DerivationAfterOverride: derivationAfter[1], marksAfterReticking: reticked,
     });
     await context.close();
   }
