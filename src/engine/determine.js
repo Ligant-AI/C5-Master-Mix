@@ -123,6 +123,8 @@ export function determine(inputs) {
   // ---- the cocktail ---------------------------------------------------------
   let sumV = 0;
   for (const c of comps) sumV += c.out.volumePerTest_uL;
+  // Finite volumes per test can still sum beyond the range of a double.
+  if (!Number.isFinite(sumV)) return notRepresentable('intended', null, 'The total volume of the components per test');
   const hi06 = rejectionHI06(p.D, comps.map((c) => ({ row: c.src.row, label: c.src.label, value: c.out.volumePerTest_uL })));
   if (hi06) return nonResult('rejected', [hi06], []);
   const fills = canonicalOfDouble(sumV, KIND.VOLUME) === canonical(p.D);

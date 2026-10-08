@@ -5,7 +5,9 @@
 //   MINOR  when the result object changes and no number does.
 //   PATCH  when neither the object nor any number changes.
 //
-// 0.1.0 (7 October 2026): scaffold. No engine yet.
+// 0.1.0 (7 October 2026): first engine build, to the accepted engine I/O
+// contract (docs/engine-io.md). Pre-release: the tolerances are PROVISIONAL
+// (open item 5), so no 1.0.0 is claimed.
 export const ENGINE_VERSION = '0.1.0';
 export const URS_VERSION = '1.0';
 export const TOOL_ID = 'C5';
