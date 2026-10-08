@@ -162,11 +162,11 @@ test('C5-FX-27: IU against IU/mL is accepted and reduced to a volume, the unit c
 });
 
 test('C5-FX-27: IU against U/mL is rejected per C5-HI-05, naming both units', () => {
-  const r = rejectionHI05('IL-2', 'IU', 'U/mL');
+  const r = rejectionHI05({ row: 3, label: 'IL-2' }, 'IU', 'U/mL');
   assert.equal(r.code, 'C5-HI-05');
-  assert.equal(r.component, 'IL-2');
+  assert.deepEqual(r.component, { row: 3, label: 'IL-2' });
   assert.deepEqual(r.units, ['IU', 'U/mL']);
-  assert.match(r.message, /"IL-2"/);
+  assert.match(r.message, /^Component 3, "IL-2": /);
   assert.match(r.message, /in IU \(activity in IU\)/);
   assert.match(r.message, /in U\/mL \(activity in U per volume\)/);
   assert.match(r.message, /IU and U are different units of activity and are never converted/);
@@ -174,7 +174,7 @@ test('C5-FX-27: IU against U/mL is rejected per C5-HI-05, naming both units', ()
 });
 
 test('C5-FX-27: IU against mg/mL is rejected per C5-HI-05, naming both units', () => {
-  const r = rejectionHI05('IL-2', 'IU', 'mg/mL');
+  const r = rejectionHI05({ row: 1, label: 'IL-2' }, 'IU', 'mg/mL');
   assert.equal(r.code, 'C5-HI-05');
   assert.deepEqual(r.units, ['IU', 'mg/mL']);
   assert.match(r.message, /in IU \(activity in IU\)/);
@@ -185,7 +185,7 @@ test('C5-FX-27: IU against mg/mL is rejected per C5-HI-05, naming both units', (
 
 test('C5-HI-05: mass against molar, and the reverse, names the molecular weight it would need', () => {
   for (const [q, s] of [['µg', 'µM'], ['pmol', 'mg/mL'], ['µg/mL', 'nM']]) {
-    const r = rejectionHI05('CD3 BUV395', q, s);
+    const r = rejectionHI05({ row: 2, label: 'CD3 BUV395' }, q, s);
     assert.deepEqual(r.units, [q, s]);
     assert.match(r.message, /molecular weight, which is not supplied or inferred/);
     assert.match(r.message, /Conversion between (mass and molar amount|molar amount and mass) is not performed here\./);
@@ -193,7 +193,8 @@ test('C5-HI-05: mass against molar, and the reverse, names the molecular weight 
 });
 
 test('rejectionHI05 refuses a reducible pair', () => {
-  assert.throws(() => rejectionHI05('CD4', 'µg', 'mg/mL'), /reducible/);
+  assert.throws(() => rejectionHI05({ row: 1, label: 'CD4' }, 'µg', 'mg/mL'), /reducible/);
+  assert.match(rejectionHI05({ row: 4, label: '  ' }, 'IU', 'U/mL').message, /^Component 4 \(no label\): /);
 });
 
 test('stock volume per test: a volume is taken as entered; an amount is amount ÷ concentration', () => {

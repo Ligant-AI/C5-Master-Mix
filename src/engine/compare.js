@@ -43,6 +43,18 @@ export function canonical(q) {
   return roundHalfAwayToInteger(Dec.shift(q.exact, r.shift));
 }
 
+/**
+ * The canonical integer of a COMPUTED value (a double, such as a sum of
+ * per-test volumes), at the resolution of its kind: the exact binary value of
+ * the double, rounded half away from zero.
+ */
+export function canonicalOfDouble(x, kind) {
+  const r = RESOLUTION[kind];
+  if (!r) throw new Error(`compare: C5-UN-10 states no resolution for a ${kind}`);
+  if (!Number.isFinite(x)) throw new Error(`compare: ${x} is not finite`);
+  return roundHalfAwayToInteger(Dec.shift(Dec.fromNumberExact(x), r.shift));
+}
+
 /** C5-UN-10: equal under the rule. Quantities of different kinds are not compared. */
 export function equalUnderRule(a, b) {
   if (a.kind !== b.kind) throw new Error(`compare: a ${a.kind} is not compared with a ${b.kind}`);

@@ -125,7 +125,7 @@ export function parseTyped(raw) {
   // Zero is zero at any exponent ("0e999999"); keep it small.
   if (Dec.isZero(mantissa)) return { text, dec: Dec.fromString('0') };
   if (Math.abs(exponent) > EXPONENT_LIMIT) {
-    return { text, dec: null, unrepresentable: true };
+    return { text, dec: null, sign: Dec.sign(mantissa), unrepresentable: true };
   }
   return { text, dec: Dec.shift(mantissa, exponent) };
 }
@@ -135,10 +135,12 @@ export function parseTyped(raw) {
  *   { status: 'blank' }
  *   { status: 'invalid', text, reason }
  *   { status: 'no-unit', text }            a number with no unit selected (C5-UN-01)
- *   { status: 'ok', text, unit, kind, dimension, base, exact, value, unrepresentable }
+ *   { status: 'ok', text, unit, kind, dimension, base, exact, value, sign, unrepresentable }
  * `exact` is the typed value in the base unit as an exact decimal; `value` is
- * the nearest double to it. `unrepresentable` marks a typed number that is
- * finite and nonzero but outside the range of a double in the base unit.
+ * the nearest double to it; `sign` (-1, 0 or 1) is the sign of what was typed,
+ * exactly, so that "1e-400" is positive though its double is 0.
+ * `unrepresentable` marks a typed number that is finite and nonzero but
+ * outside the range of a double in the base unit.
  */
 export function quantity(raw, symbol) {
   const p = parseTyped(raw);
@@ -150,11 +152,11 @@ export function quantity(raw, symbol) {
   // defect in the page, not an input to report.
   if (!unit) throw new Error(`units: unknown unit "${symbol}"`);
   const common = { status: 'ok', text: p.text, unit: unit.symbol, kind: unit.kind, dimension: unit.dimension, base: unit.base };
-  if (p.unrepresentable) return { ...common, exact: null, value: NaN, unrepresentable: true };
+  if (p.unrepresentable) return { ...common, exact: null, value: NaN, sign: p.sign, unrepresentable: true };
   const exact = Dec.shift(p.dec, unit.exp10);
   const value = Number(Dec.toString(exact));
   const unrepresentable = !Number.isFinite(value) || (value === 0 && !Dec.isZero(exact));
-  return { ...common, exact, value, unrepresentable };
+  return { ...common, exact, value, sign: Dec.sign(exact), unrepresentable };
 }
 
 /**
@@ -210,21 +212,27 @@ function mismatchReason(q, s) {
   return 'the two units are of different dimensions';
 }
 
+/** A component as messages name it: its row, and its label if it has one. */
+export function componentName(component) {
+  const label = component.label && String(component.label).trim();
+  return label ? `Component ${component.row}, "${label}"` : `Component ${component.row} (no label)`;
+}
+
 /**
  * The C5-HI-05 rejection for a component whose intended quantity cannot be
  * reduced to a volume of its stock: the component, both units, and that
  * conversion between those dimensions is not performed here.
  */
-export function rejectionHI05(label, intendedUnit, stockUnit) {
+export function rejectionHI05(component, intendedUnit, stockUnit) {
   const r = reduction(intendedUnit, stockUnit);
   if (r.reducible !== false) throw new Error('rejectionHI05: the quantity is reducible');
   const q = r.intended;
   const s = r.stock;
   return Object.freeze({
     code: 'C5-HI-05',
-    component: label,
+    component: { row: component.row, label: component.label },
     units: [q.symbol, s.symbol],
-    message: `Component "${label}": the intended quantity is in ${q.symbol} (${describe(q)}) and the stock concentration is in ${s.symbol} (${describe(s)}). It cannot be reduced to a volume of its stock: ${mismatchReason(q, s)}. Conversion between ${q.dimension} and ${s.dimension} is not performed here.`,
+    message: `${componentName(component)}: the intended quantity is in ${q.symbol} (${describe(q)}) and the stock concentration is in ${s.symbol} (${describe(s)}). It cannot be reduced to a volume of its stock: ${mismatchReason(q, s)}. Conversion between ${q.dimension} and ${s.dimension} is not performed here.`,
   });
 }
 
