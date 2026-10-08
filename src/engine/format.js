@@ -7,12 +7,11 @@ import { sig, Dec } from './numfmt.js';
 import { unitInfo } from './units.js';
 
 // Significant figures. Ratios and fractions (concentration ratio, scale
-// factor, overage fraction, antibody fraction, flag factors): 3, PROVISIONAL,
-// pending NADIRA under open item 8 (Task 6b review, ruling 3).
+// factor, overage fraction, antibody fraction, flag factors): 3, confirmed.
 // The effective number of tests: at most 6 significant figures, with no
-// trailing zeros ("96", "105.6"), PROVISIONAL, open item 8 (Task 11 review, item 3).
+// trailing zeros ("96", "105.6"), confirmed. See REGISTER-AUDIT-TRAIL.md.
 export const PRECISION = Object.freeze({ volumes: 3, concentrations: 6, ratios: 3, effectiveTests: 6 });
-export const PRECISION_STATUS = Object.freeze({ volumes: 'disclosed', concentrations: 'proposed, open item 8', ratios: 'PROVISIONAL, open item 8', effectiveTests: 'PROVISIONAL, open item 8' });
+export const PRECISION_STATUS = Object.freeze({ volumes: 'disclosed', concentrations: 'disclosed', ratios: 'disclosed', effectiveTests: 'disclosed' });
 
 /** The effective number of tests for display: rounded once, trailing zeros dropped. */
 export function effectiveTests(x) {

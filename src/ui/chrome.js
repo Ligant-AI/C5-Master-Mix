@@ -33,7 +33,7 @@ export function renderFooter() {
     repoUrl: CONFIG.repositoryUrl,
     citations: [citation()],
     citationFootnote: CONFIG.doi
-      ? 'The identifier is given as text, not as a link: a link that navigated to a publisher would disclose a visit that the rest of the tool is built to prevent.'
+      ? 'References are given as text rather than links, so the page itself sends no visit to a publisher.'
       : 'No identifier is stated: one is minted when the tool is released, and a placeholder would read as a record that does not exist.',
     disclaimer: SCOPE_STATEMENT,
   });
