@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Task 3 layout mock: synthetic content, no engine. Same CSP as index.html. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com/beacon.min.js https://static.cloudflareinsights.com/beacon.min.js/ https://www.googletagmanager.com; style-src 'self'; font-src 'self'; img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com; connect-src https://benchtools.ligant.ai/cdn-cgi/rum https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://www.google.com https://*.g.doubleclick.net; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <link rel="icon" id="favicon" href="data:,">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex">
+  <title>Ligant · Master Mix · layout mock (Task 3)</title>
+  <meta name="color-scheme" content="light">
+  <link rel="stylesheet" href="../../src/tokens.css">
+  <link rel="stylesheet" href="../../styles.css">
+  <link rel="stylesheet" href="./mock.css">
+</head>
+<body>
+<div class="app">
+  <header class="masthead" id="site-header"></header>
+
+  <main id="main">
+    <div class="stack">
+      <p class="mock-banner">Layout mock for Task 3: synthetic content, no engine. Nothing here is computed.</p>
+
+      <section class="panel" aria-labelledby="panel-heading">
+        <div class="panel-head"><div class="titles"><span class="step">1</span><h2 id="panel-heading">Panel</h2></div></div>
+        <div class="panel-body mock-panel-grid" id="panel-fields"></div>
+      </section>
+
+      <section class="panel panel-series" aria-labelledby="components-heading">
+        <div class="panel-head">
+          <div class="titles"><span class="step">2</span><h2 id="components-heading">Components</h2></div>
+          <label class="mock-panel-control"><input type="checkbox"> All components established at these assay conditions</label>
+        </div>
+        <div class="panel-body" id="kept-region">
+          <div class="series-sticky" id="bounded-block" aria-label="declarations and flags the result is computed under">
+            <div class="rail-declarations"><div id="declarations-content" class="declarations-content"></div></div>
+            <ul id="flag-summary" class="flag-summary mock-flag-grid" aria-label="flags raised"></ul>
+          </div>
+          <table class="components" id="components">
+            <thead id="components-head"></thead>
+            <tbody id="components-body"></tbody>
+          </table>
+          <div class="subsection" id="flag-names">
+            <h3 class="sub-h">Components named by each flag</h3>
+            <div id="flag-names-body"></div>
+          </div>
+          <div class="subsection visuals" id="visuals">
+            <h3 class="sub-h">C5-VZ-01 · Tube composition</h3>
+            <div id="vz01"></div>
+            <h3 class="sub-h">C5-VZ-02 · Cocktail composition</h3>
+            <div id="vz02"></div>
+            <h3 class="sub-h">C5-VZ-03 · Concentration ratio strip</h3>
+            <div id="vz03"></div>
+          </div>
+          <div id="keep-spacer" aria-hidden="true"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer" id="site-footer"></footer>
+</div>
+  <script type="module" src="./mock.js"></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+/* Task 3 layout mock. Built from styles.css and the suite tokens; what is new
+   here is only what C5's page has and C7's does not: the component rows, the
+   flag summary in two columns, and the visuals. Task 8 moves what is accepted
+   into styles.css unchanged, so the measured layout is the built one. */
+
+.mock-banner { font-size: 12px; color: var(--text-muted); border: 1px dashed var(--border-strong); border-radius: var(--radius-sm); padding: 6px 10px; }
+
+.mock-panel-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px 14px; }
+.mock-panel-control { font-size: 12.5px; display: inline-flex; gap: 7px; align-items: center; color: var(--text-primary); }
+
+/* The bounded block (C5-NF-04, C5-NF-05). .series-sticky is C7's, but stuck
+   at 0 rather than C7's 16px: at 16px, rows scroll past in the strip above the
+   block and stay readable there. The flags take two columns, so ten flags are
+   five lines. */
+#bounded-block { top: 0; }
+.mock-flag-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; }
+.flag-summary li { border-left: 2px solid var(--brand-amber); background: var(--attention-wash); border-radius: var(--radius-sm); padding: 3px 8px; line-height: 1.4; }
+.decl.wrap { white-space: normal; flex-basis: 100%; }
+
+/* Component rows: spreadsheet-style, one row per component. The column
+   headings stick under the bounded block while the table is in view. */
+table.components { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; }
+table.components thead th { position: sticky; top: var(--block-h, 0px); z-index: 1; background: var(--surface-sunken); text-align: left; font-size: 11.5px; font-weight: 600; color: var(--text-secondary); padding: 6px 4px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+table.components td { padding: 3px 4px; border-bottom: 1px solid var(--grid); vertical-align: middle; white-space: nowrap; }
+table.components td.idx { font-family: var(--mono); color: var(--text-muted); width: 28px; }
+table.components input[type=text], table.components select { padding: 4px 6px; font-size: 12.5px; }
+table.components .q { display: inline-flex; gap: 4px; align-items: center; }
+table.components .q input { width: 72px; }
+table.components .q input.cells { width: 84px; }
+table.components .q select { width: 76px; }
+table.components .q select.wide { width: 136px; }
+table.components .q select.conc { width: 92px; }
+table.components input.label-in { width: 190px; }
+table.components select.prov { width: 184px; }
+table.components td.transport { font-size: 11.5px; color: var(--text-muted); }
+
+.flag-names-line { font-size: 12px; line-height: 1.5; margin-bottom: 4px; color: var(--text-secondary); }
+.flag-names-line .code { font-family: var(--mono); font-weight: 600; color: var(--text-primary); margin-right: 7px; }
+
+.visuals svg { display: block; width: 100%; height: auto; margin-bottom: 14px; font-family: var(--font); }
+.visuals svg text { font-size: 11px; fill: var(--text-secondary); }
+.visuals svg text.num { font-family: var(--mono); }
+.visuals .seg-a { fill: var(--brand-teal-pale); stroke: var(--text-secondary); stroke-width: 1; }
+.visuals .seg-b { fill: var(--surface-inset); stroke: var(--text-secondary); stroke-width: 1; }
+.visuals .axis { stroke: var(--border-strong); stroke-width: 1; }
+.visuals .unity { stroke: var(--text-primary); stroke-width: 1; }
+.visuals .mark { fill: var(--text-primary); }
