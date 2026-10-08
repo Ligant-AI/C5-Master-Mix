@@ -1,6 +1,6 @@
 # C5 Master Mix: engine I/O contract
 
-**Status:** proposed by the builder for Task 6a, for Adacs's acceptance.
+**Status:** accepted by Adacs (Task 6a review), with the C5-FL-08 unevaluated-components amendment.
 **Engine version:** 0.1.0. **URS:** v1.0 (citations checked against draft v0.2.3, which Adacs confirmed identical on every cited line).
 **Purpose:** the inputs `determine()` receives and the outputs acceptance 3 compares, so that the fixtures and the Python reimplementation can be written from the URS and this contract alone, without reading the engine.
 
@@ -117,6 +117,8 @@ Every number is the **unrounded double** (C5-UN-07), as a JSON number in shortes
     "diluentTotal_uL":               diluent in the cocktail
     "totalCocktail_uL":              total cocktail volume
     "antibodyFraction":              (dimensionless)
+    "fl08Unevaluated":               [indexes]: components with SV_i not recorded, ascending; always
+                                     present, whether or not C5-FL-08 is raised (acceptance 14)
     "components": [ per component, in entered order ]
   },
   "flags": [ { "code", "components": [indexes], ...detail } ]
@@ -157,9 +159,9 @@ All quantities in base units (§1.2). `D`, `R` are the dispensed and residual vo
 
 `basisApplied`: `not-applied` where `SV_i` is not recorded (C5-DT-03); otherwise the selected basis; `not-required` where the basis is not required (C5-CP-07) and none is selected. Where the basis is not required, every recorded `SV_i` equals `SV_assay`, so both bases give `v_i = a_i`.
 
-**Note 1.** C5-OV-04 gives the dead-volume overage fraction as `V_dead / (n * D)`, and the guide gives `(N_eff - n) / n` for all forms. They are algebraically equal; the contract uses the direct form for each, which avoids the cancellation in `N_eff - n` when the overage is small. Proposed; Adacs to accept or overrule.
+**Note 1.** C5-OV-04 gives the dead-volume overage fraction as `V_dead / (n * D)`, and the guide gives `(N_eff - n) / n` for all forms. They are algebraically equal; the contract uses the direct form for each, which avoids the cancellation in `N_eff - n` when the overage is small. Accepted (Task 6a review).
 
-**Note 2.** The literal 0 for the diluent in the cocktail, when the components fill the dispensed volume, extends ruling 1 from the volume per test to the cocktail. Proposed; Adacs to accept or overrule.
+**Note 2.** The literal 0 for the diluent in the cocktail, when the components fill the dispensed volume, extends ruling 1 from the volume per test to the cocktail. Accepted (Task 6a review).
 
 ### 2.2 Flags
 
@@ -173,7 +175,7 @@ Listed in the order FL-01, 02, 03, 04, 05, 07, 08, 09, 11, 12; each raised flag 
 | C5-FL-04 | provenance `vendor` or `not-recorded` | those components | none |
 | C5-FL-05 | `V_i` is below the minimum transfer volume (canonical `V_i` < canonical minimum; equal is not below) | those components | none |
 | C5-FL-07 | capacity declared and `totalCocktail_uL` exceeds it (canonical; equal does not exceed) | `[]` | none |
-| C5-FL-08 | the recorded `SV_i` take two or more distinct canonical values | every component with `SV_i` recorded | `"volumes"`: the distinct canonical volumes in nL, ascending, each with its component indexes: `[{ "nL": 50000, "components": [2] }, ...]` |
+| C5-FL-08 | the recorded `SV_i` take two or more distinct canonical values | every component with `SV_i` recorded | `"volumes"`: the distinct canonical volumes in nL, ascending, each with its component indexes: `[{ "nL": 50000, "components": [2] }, ...]`. `"unevaluated"`: the indexes of components with `SV_i` not recorded, ascending, which are excluded from the evaluation and named as unevaluated (URS C5-FL-08, acceptance 14) |
 | C5-FL-09 | diluent not recorded | `[]` | none |
 | C5-FL-11 | a recorded established cell number differs from the assay's | those components | `"amountPerCell"`: per component, `{ "component": i, "factor": f }` or `{ "component": i, "withheld": true, "reason": r }` |
 | C5-FL-12 | established cell number not recorded | those components | none |
@@ -277,7 +279,7 @@ Built by hand from §2.1, not by running the engine. The inputs are chosen so th
 - FL-01 [2]. FL-02 [3]. FL-03: overage 4, not raised. FL-04 [2, 3].
 - FL-05: minimum 2 µL = 2 000 nL; `V` = 100 000, 100 000, 50 000 nL, none below: not raised.
 - FL-07: capacity 5 mL = 5 000 000 nL; total 5000 µL = 5 000 000 nL, **equal, so it does not exceed**: not raised (ruling 1's boundary).
-- FL-08 [1, 2]: recorded volumes 100 000 nL (component 1) and 50 000 nL (component 2), two distinct values.
+- FL-08 [1, 2]: recorded volumes 100 000 nL (component 1) and 50 000 nL (component 2), two distinct values. Component 3 (not recorded) is unevaluated: `"unevaluated": [3]`, and `values.fl08Unevaluated` = [3].
 - FL-09: diluent recorded, not raised. FL-11 [2], factor 1. FL-12 [3].
 
 ### 4.3 Expected output
@@ -296,6 +298,7 @@ Built by hand from §2.1, not by running the engine. The inputs are chosen so th
     "diluentTotal_uL": 4750,
     "totalCocktail_uL": 5000,
     "antibodyFraction": 0.05,
+    "fl08Unevaluated": [3],
     "components": [
       { "index": 1, "form": "amount", "basisApplied": "preserve-concentration",
         "stockVolumePerTest_uL": 1, "scaleFactor": { "value": 1, "exactlyOne": true },
@@ -319,7 +322,8 @@ Built by hand from §2.1, not by running the engine. The inputs are chosen so th
     { "code": "C5-FL-02", "components": [3] },
     { "code": "C5-FL-04", "components": [2, 3] },
     { "code": "C5-FL-08", "components": [1, 2],
-      "volumes": [ { "nL": 50000, "components": [2] }, { "nL": 100000, "components": [1] } ] },
+      "volumes": [ { "nL": 50000, "components": [2] }, { "nL": 100000, "components": [1] } ],
+      "unevaluated": [3] },
     { "code": "C5-FL-11", "components": [2],
       "amountPerCell": [ { "component": 2, "factor": 1 } ] },
     { "code": "C5-FL-12", "components": [3] }
