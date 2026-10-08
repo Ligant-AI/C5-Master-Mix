@@ -10,10 +10,14 @@ import { fileURLToPath } from 'node:url';
 import { fill, typeInto } from './fill.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const base = process.argv[2] || 'http://localhost:4175/';
+const base = process.argv.slice(2).find((x) => !x.startsWith('--')) || 'http://localhost:4175/';
 const fixture = (id) => JSON.parse(readFileSync(path.join(ROOT, 'tests/fixtures', `${id}.json`), 'utf8')).input;
 const clone = (x) => JSON.parse(JSON.stringify(x));
 const VIEW = { width: 1366, height: 650 };
+// --only=<key> runs the one check family with that key (for the negative
+// controls, verification/mutation/headless-controls.mjs); otherwise all run.
+const onlyArg = process.argv.find((x) => x.startsWith('--only='));
+const want = (key) => !onlyArg || onlyArg.slice(7) === key;
 
 const browser = await chromium.launch();
 let failed = false;
@@ -42,7 +46,7 @@ const rowField = (page, i, f) => page.locator(`#components-body tr[data-row="${i
 
 try {
   // ---- the panel control: five behaviours --------------------------------------
-  {
+  if (want('panel-control')) {
     const { context, page } = await fresh();
     const control = page.locator('#panel-control');
     const startsUnselected = !(await control.isChecked());
@@ -74,8 +78,29 @@ try {
     await context.close();
   }
 
+  // ---- the panel control, unchecked (Task 11, item 4) -------------------------------
+  // Rows keep the values it set and stay recorded as declared through it, but
+  // stop following later changes to the assay conditions.
+  if (want('panel-control-unchecked')) {
+    const { context, page } = await fresh();
+    const p = clone(fixture('C5-FX-01'));
+    p.dispensed = { value: '50', unit: 'µL' };
+    p.residual = { value: '20', unit: 'µL' };
+    for (const c of p.components) { c.establishedVolume = { value: '', unit: '' }; c.establishedCells = { value: '', unit: '' }; }
+    await fill(page, p);
+    const volumes = () => page.evaluate(() => [...document.querySelectorAll('[data-field="establishedVolume.value"]')].map((e) => e.value));
+    await page.locator('#panel-control').check();
+    const set = await volumes();
+    await page.locator('#panel-control').uncheck();
+    await page.locator('#panel-fields [data-field="residual.value"]').fill('30');
+    const after = await volumes();
+    const recorded = (await recordOf(page)).declarations.components.map((c) => c.declaredByPanelControl);
+    report('panel control unchecked: rows keep their values and their record, and stop following the assay', set.every((v) => v === '70') && after.every((v) => v === '70') && recorded.every((x) => x === true), { whileChecked: set, afterUncheckingAndChangingTheResidualTo30: after, recordedAsDeclaredThroughTheControl: recorded });
+    await context.close();
+  }
+
   // ---- basis gating (C5-CP-07, C5-ST-07) -------------------------------------------
-  {
+  if (want('basis-gating')) {
     const { context, page } = await fresh();
     const p = clone(fixture('C5-FX-07c')); // all at the assay's conditions, basis unselected
     await fill(page, p);
@@ -90,7 +115,7 @@ try {
   }
 
   // ---- recompute on every change (acceptance 17b) -------------------------------------
-  {
+  if (want('recompute')) {
     const start = fixture('C5-FX-01');
     const changes = [
       ['transfer basis', (p) => { p.basis = 'preserve-amount'; }],
@@ -130,7 +155,7 @@ try {
   }
 
   // ---- acceptance 17: each required declaration, removed, prevents a result ----------------
-  {
+  if (want('required')) {
     const removals = [
       ['dispensed volume', (p) => { p.dispensed.value = ''; }],
       ['residual volume', (p) => { p.residual.value = ''; }],
@@ -166,7 +191,7 @@ try {
   }
 
   // ---- acceptance 20: reload and re-enter reproduces exactly -------------------------------
-  {
+  if (want('reload')) {
     const { context, page } = await fresh();
     await typeInto(page, fixture('C5-FX-01'));
     const first = await snapshot(page);
@@ -182,7 +207,7 @@ try {
   }
 
   // ---- storage and the network sentinel (C5-ST-10, C5-NF-01) ----------------------------
-  {
+  if (want('storage-network')) {
     const context = await browser.newContext({ viewport: VIEW });
     const page = await context.newPage();
     const requests = [];
@@ -208,7 +233,7 @@ try {
   }
 
   // ---- the component cap ---------------------------------------------------------
-  {
+  if (want('cap')) {
     const { context, page, errors } = await fresh();
     for (let i = 0; i < 59; i++) await page.locator('#add-component').click();
     const at60 = await page.locator('#components-body tr').count();

@@ -11,11 +11,15 @@ import { fileURLToPath } from 'node:url';
 import { fill } from './fill.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const base = process.argv[2] || 'http://localhost:4175/';
+const base = process.argv.slice(2).find((x) => !x.startsWith('--')) || 'http://localhost:4175/';
 const FIXTURES = readdirSync(path.join(ROOT, 'tests/fixtures')).filter((f) => f.endsWith('.json')).sort()
   .map((f) => JSON.parse(readFileSync(path.join(ROOT, 'tests/fixtures', f), 'utf8')));
 const fx = (id) => FIXTURES.find((x) => x.id === id);
 const VIEW = { width: 1366, height: 650 };
+// --only=<key> runs the one check family with that key (for the negative
+// controls, verification/mutation/headless-controls.mjs); otherwise all run.
+const onlyArg = process.argv.find((x) => x.startsWith('--only='));
+const want = (key) => !onlyArg || onlyArg.slice(7) === key;
 
 const browser = await chromium.launch();
 let failed = false;
@@ -36,7 +40,7 @@ const recordOf = async (page) => JSON.parse(await page.evaluate(() => document.g
 
 try {
   // ---- acceptance 27: every visual agrees with the table and the object -------------------
-  {
+  if (want('agreement')) {
     const results = [];
     for (const f of FIXTURES) {
       const { context, page, errors } = await open(f.input);
@@ -73,7 +77,7 @@ try {
   }
 
   // ---- acceptance 28: a withheld value is never drawn (C5-FX-20) ------------------------------
-  {
+  if (want('withheld')) {
     const { context, page } = await open(fx('C5-FX-20').input);
     const rec = await recordOf(page);
     const withheld = rec.values.components.filter((c) => c.ratio.withheld).map((c) => c.index);
@@ -86,7 +90,7 @@ try {
   }
 
   // ---- acceptance 29: log symmetry (C5-FX-21) -------------------------------------------
-  {
+  if (want('symmetry')) {
     const { context, page } = await open(fx('C5-FX-21').input);
     const rec = await recordOf(page);
     const ratios = rec.values.components.map((c) => [c.index, c.ratio.value]);
@@ -106,7 +110,7 @@ try {
   }
 
   // ---- C5-VZ-01: the zero residual segment (C5-FX-22) ------------------------------------
-  {
+  if (want('zero-residual')) {
     const { context, page } = await open(fx('C5-FX-22').input);
     const r = await page.evaluate(() => ({
       segment: !!document.querySelector('#outputs #vz01 [data-key="vz01-residual-segment"]'),
@@ -118,7 +122,7 @@ try {
   }
 
   // ---- C5-FX-23 at 60 components --------------------------------------------------------
-  {
+  if (want('sixty')) {
     const { context, page, errors } = await open(fx('C5-FX-23').input);
     const rec = await recordOf(page);
     const codes = new Map();
@@ -163,7 +167,7 @@ try {
   }
 
   // ---- acceptance 25 and 26: the bench sheet in print media, and the notebook copy ------------
-  {
+  if (want('print-notebook')) {
     const results = [];
     for (const id of ['C5-FX-23', 'C5-FX-11b', 'C5-FX-22', 'C5-FX-19', 'C5-FX-01']) {
       const { context, page } = await open(fx(id).input);
@@ -195,7 +199,7 @@ try {
   }
 
   // ---- acceptance 14 on the page (C5-FX-11) -------------------------------------------
-  {
+  if (want('acceptance-14')) {
     const { context, page } = await open(fx('C5-FX-11').input);
     const rec = await recordOf(page);
     const unevaluated = rec.values.fl08Unevaluated;
@@ -212,7 +216,7 @@ try {
   }
 
   // ---- acceptance 21: register, failure list and privacy text on the page ------------------
-  {
+  if (want('acceptance-21')) {
     const { context, page } = await open(fx('C5-FX-01').input);
     const { REGISTER, FAILURES } = await import('../../src/engine/register.js');
     const { PRIVACY_STATEMENT } = await import('../../src/shared/privacy-statement.js');
@@ -230,8 +234,42 @@ try {
     await context.close();
   }
 
+  // ---- the paint of every visual, printed and on the page (C5-VZ-07, VZ-08; acceptance 30) ------
+  if (want('print-paint')) {
+    const results = [];
+    for (const id of ['C5-FX-24', 'C5-FX-22', 'C5-FX-01', 'C5-FX-20']) {
+      const { context, page } = await open(fx(id).input);
+      for (const media of ['print', 'screen']) {
+        await page.emulateMedia({ media });
+        const r = await page.evaluate((media) => {
+          const root = document.getElementById(media === 'print' ? 'bench-sheet' : 'outputs');
+          const paint = (el) => { const cs = getComputedStyle(el); return { fill: cs.fill, stroke: cs.stroke, strokeWidth: cs.strokeWidth }; };
+          const same = (a, b) => a.fill === b.fill && a.stroke === b.stroke && a.strokeWidth === b.strokeWidth;
+          const adjacent = [];
+          for (const vz of ['vz01', 'vz02']) {
+            const segs = [...root.querySelectorAll(`[id$="${vz}"] [data-segment]`)].sort((a, b) => a.getBBox().x - b.getBBox().x);
+            for (let i = 1; i < segs.length; i++) {
+              const a = paint(segs[i - 1]); const b = paint(segs[i]);
+              if (same(a, b)) adjacent.push({ visual: vz, pair: [segs[i - 1].getAttribute('data-segment'), segs[i].getAttribute('data-segment')], paint: a });
+            }
+          }
+          const defaultBlack = [...root.querySelectorAll('svg rect, svg circle, svg path, svg polygon, svg text')]
+            .filter((el) => !el.closest('defs, pattern') && !el.hasAttribute('data-deliberate'))
+            .filter((el) => getComputedStyle(el).fill === 'rgb(0, 0, 0)')
+            .map((el) => `${el.tagName} ${el.getAttribute('data-segment') || el.getAttribute('data-key') || el.textContent.slice(0, 20)}`);
+          const unstrokedLines = [...root.querySelectorAll('svg line')].filter((el) => !el.closest('defs, pattern') && getComputedStyle(el).stroke === 'none').length;
+          const segments = root.querySelectorAll('[data-segment]').length;
+          return { segments, adjacentAlike: adjacent.slice(0, 5), adjacentAlikeCount: adjacent.length, defaultBlack: defaultBlack.slice(0, 5), defaultBlackCount: defaultBlack.length, unstrokedLines };
+        }, media);
+        results.push({ fixture: id, media, ...r });
+      }
+      await context.close();
+    }
+    report('visual paint: adjacent segments differ by fill, pattern or stroke; nothing uses the default black fill (printed and on the page)', results.every((r) => r.segments > 0 && r.adjacentAlikeCount === 0 && r.defaultBlackCount === 0 && r.unstrokedLines === 0), { results });
+  }
+
   // ---- greyscale bench sheet of C5-FX-24, for Adacs (ahead of acceptance 30) ---------------------
-  {
+  if (want('greyscale')) {
     const dir = path.join(ROOT, 'verification/print');
     mkdirSync(dir, { recursive: true });
     const { context, page } = await open(fx('C5-FX-24').input);
@@ -239,9 +277,7 @@ try {
     await page.evaluate(() => { document.documentElement.style.filter = 'grayscale(1)'; });
     const file = path.join(dir, 'C5-FX-24-bench-sheet-greyscale.png');
     await page.screenshot({ path: file, fullPage: true });
-    const pdf = path.join(dir, 'C5-FX-24-bench-sheet.pdf');
-    await page.pdf({ path: pdf, format: 'A4', printBackground: true });
-    report('greyscale bench sheet of C5-FX-24 saved for Adacs (acceptance 30 pending his Chrome check)', true, { screenshot: path.relative(ROOT, file), pdf: path.relative(ROOT, pdf) });
+    report('greyscale bench sheet of C5-FX-24 saved for Adacs (acceptance 30 pending his re-check)', true, { screenshot: path.relative(ROOT, file) });
     await context.close();
   }
 } finally {
