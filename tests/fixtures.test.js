@@ -7,6 +7,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { determine } from '../src/engine/determine.js';
+import { record } from '../src/engine/result.js';
 import { pipettingList } from '../src/engine/format.js';
 import { Dec } from '../src/engine/numfmt.js';
 import { TOLERANCES, relativeDifference } from '../src/engine/tolerances.js';
@@ -62,7 +63,7 @@ for (const [id, fx] of FIXTURES) {
       assert.deepEqual(new Set(r.incomplete.map(key)), new Set(e.incomplete.map(key)), 'incomplete');
     }
     if (e.display3sf || e.displayedTotalMustDifferFrom) {
-      const list = pipettingList(r);
+      const list = pipettingList(record(fx.input));
       const d = e.display3sf;
       if (d) {
         const comps = list.steps.filter((s) => s.what === 'component').map((s) => s.volume_uL);

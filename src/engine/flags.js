@@ -75,10 +75,8 @@ export function evaluateFlags(ctx) {
 // factor is stated in the direction of its physical consequence and labelled
 // with the two quantities it compares (C5-DT-06), as "A ÷ B = value".
 //
-// The words need the typed declarations (labels, volumes and cell numbers as
-// entered), which the structured result object will carry (Task 7 item 2,
-// held on the C5-OUT-03 escalation). Until it does, they are passed in as
-// `inputs`, the contract's input object.
+// The words read the typed declarations (labels, volumes and cell numbers as
+// entered) from the structured result, src/engine/result.js (Task 7b).
 
 export const FLAG_TITLES = Object.freeze({
   'C5-FL-01': 'Established at a different staining volume',
@@ -119,24 +117,25 @@ const ul = (x) => `${sig(x, 3)} µL`;
  * The words of every raised flag, in flag order.
  * Returns [{ code, title, statement, components: [{ component, text }] }].
  */
-export function flagTexts(result, inputs) {
-  const v = result.values;
+export function flagTexts(rec) {
+  const v = rec.values;
+  const d = rec.declarations;
   const comp = (i) => v.components[i - 1];
   const name = (i) => {
-    const label = (inputs.components[i - 1].label || '').trim();
+    const label = (d.components[i - 1].label || '').trim();
     return label ? `Component ${i}, "${label}"` : `Component ${i} (no label)`;
   };
   const per = (f, text) => f.components.map((i) => ({ component: i, text: `${name(i)}: ${text(i)}` }));
-  const sv = ul(v.svAssay_uL);
+  const sv = ul(v.svAssay.value);
 
-  return result.flags.map((f) => {
+  return rec.flags.map((f) => {
     let components = [];
     let extra = '';
     switch (f.code) {
       case 'C5-FL-01':
         components = per(f, (i) => {
           const c = comp(i);
-          return `established at ${typedQ(inputs.components[i - 1].establishedVolume)}; assay staining volume ${sv}; under ${BASIS_WORDS[c.basisApplied]}, concentration in the assay ÷ concentration it was established at = ${sig(c.ratio.value, 3)}.`;
+          return `established at ${typedQ(d.components[i - 1].establishedVolume)}; assay staining volume ${sv}; under ${BASIS_WORDS[c.basisApplied]}, concentration in the assay ÷ concentration it was established at = ${sig(c.ratio.value, 3)}.`;
         });
         break;
       case 'C5-FL-02':
@@ -144,13 +143,13 @@ export function flagTexts(result, inputs) {
         components = per(f, () => 'named.');
         break;
       case 'C5-FL-04':
-        components = per(f, (i) => `${PROVENANCE_WORDS[inputs.components[i - 1].provenance]}.`);
+        components = per(f, (i) => `${PROVENANCE_WORDS[d.components[i - 1].provenance.value]}.`);
         break;
       case 'C5-FL-05':
-        components = per(f, (i) => `volume in the cocktail ${ul(comp(i).volumeInCocktail_uL)}, below the declared minimum of ${typedQ(inputs.minTransfer)}.`);
+        components = per(f, (i) => `volume in the cocktail ${ul(comp(i).volumeInCocktail.value)}, below the declared minimum of ${typedQ(d.minTransfer)}.`);
         break;
       case 'C5-FL-07':
-        extra = `Total cocktail volume ${ul(v.totalCocktail_uL)}; declared vessel capacity ${typedQ(inputs.capacity)}.`;
+        extra = `Total cocktail volume ${ul(v.totalCocktail.value)}; declared vessel capacity ${typedQ(d.capacity)}.`;
         break;
       case 'C5-FL-08': {
         const microlitres = (nL) => Dec.toString(Dec.trimZeros(Dec.shift(Dec.fromString(String(nL)), -3)));
@@ -164,7 +163,7 @@ export function flagTexts(result, inputs) {
         components = f.amountPerCell.map((x) => {
           const i = x.component;
           const ratio = 'withheld' in x ? WITHHELD_WORDS[x.reason] : `= ${sig(x.factor, 3)}`;
-          return { component: i, text: `${name(i)}: established at ${typedQ(inputs.components[i - 1].establishedCells)}; assay ${typedQ(inputs.assayCells)}; amount per cell in the assay ÷ amount per cell as established ${ratio}.` };
+          return { component: i, text: `${name(i)}: established at ${typedQ(d.components[i - 1].establishedCells)}; assay ${typedQ(d.assayCells)}; amount per cell in the assay ÷ amount per cell as established ${ratio}.` };
         });
         break;
       default:
@@ -175,8 +174,8 @@ export function flagTexts(result, inputs) {
 }
 
 /** The flags as notebook lines (C5-OUT-10): every flag in words, with every named component. */
-export function flagNotebookLines(result, inputs) {
-  const texts = flagTexts(result, inputs);
+export function flagNotebookLines(rec) {
+  const texts = flagTexts(rec);
   if (!texts.length) return ['Flags: none raised.'];
   return ['Flags', ...texts.flatMap((t) => [`  ${t.code} — ${t.title}. ${t.statement}`, ...t.components.map((c) => `    ${c.text}`)])];
 }

@@ -1,4 +1,4 @@
-// Display values derived from a result (CLAUDE.md §5.5; C5-UN-04, C5-UN-05,
+// Display values derived from the structured result, src/engine/result.js (CLAUDE.md §5.5; C5-UN-04, C5-UN-05,
 // C5-DT-04, C5-DT-05). Pure. Nothing here computes a quantity: each displayed
 // number is the rounding of one unrounded value in the result, half away from
 // zero on its exact binary value (numfmt.js), and the displayed total is the
@@ -21,36 +21,35 @@ const volume = (x) => sig(x, PRECISION.volumes);
  * volumes: it may carry more than 3 significant figures, and it is not the
  * rounding of the unrounded total (C5-IV-01).
  */
-export function pipettingList(result) {
-  const v = result.values;
-  const steps = [{ step: 1, what: 'diluent', volume_uL: volume(v.diluentTotal_uL) }];
-  for (const c of v.components) steps.push({ step: steps.length + 1, what: 'component', component: c.index, volume_uL: volume(c.volumeInCocktail_uL) });
+export function pipettingList(rec) {
+  const v = rec.values;
+  const steps = [{ step: 1, what: 'diluent', volume_uL: volume(v.diluentTotal.value) }];
+  for (const c of v.components) steps.push({ step: steps.length + 1, what: 'component', component: c.index, volume_uL: volume(c.volumeInCocktail.value) });
   const total = steps.map((s) => Dec.fromString(s.volume_uL)).reduce(Dec.add);
   return Object.freeze({ order: 'Diluent first, then components in the order entered.', steps, total_uL: Dec.toString(total) });
 }
 
 /** Volumes per test, each at 3 significant figures from its own unrounded value. */
-export function perTestVolumes(result) {
-  const v = result.values;
+export function perTestVolumes(rec) {
+  const v = rec.values;
   return Object.freeze({
-    diluent_uL: volume(v.diluentPerTest_uL),
-    components: v.components.map((c) => ({ component: c.index, volume_uL: volume(c.volumePerTest_uL) })),
+    diluent_uL: volume(v.diluentPerTest.value),
+    components: v.components.map((c) => ({ component: c.index, volume_uL: volume(c.volumePerTest.value) })),
   });
 }
 
 /**
  * Concentrations in the assay at 6 significant figures (C5-UN-05), each in the
- * stock unit the user selected for that component (Task 6b review, ruling 2).
- * `stockUnits` lists those unit identifiers in component order; the result
- * carries the base unit only, until Task 7's structured result carries the
- * declarations. The conversion from the base unit is an exact power-of-ten
- * shift of the double's exact binary value, so the value is rounded once.
+ * stock unit the user selected for that component (Task 6b review, ruling 2),
+ * read from the structured result (Task 7b). The conversion from the base unit
+ * is an exact power-of-ten shift of the double's exact binary value, so the
+ * value is rounded once.
  */
-export function concentrations(result, stockUnits) {
-  return result.values.components.map((c, i) => {
+export function concentrations(rec) {
+  return rec.values.components.map((c) => {
     if (c.concentrationInAssay.withheld) return { component: c.index, withheld: true, reason: c.concentrationInAssay.reason };
-    const u = unitInfo(stockUnits[i]);
-    if (!u || u.base !== c.concentrationInAssay.unit) throw new Error(`format: "${stockUnits[i]}" is not a unit of ${c.concentrationInAssay.unit}`);
+    const u = unitInfo(c.concentrationInAssay.stockUnit);
+    if (!u || u.base !== c.concentrationInAssay.unit) throw new Error(`format: "${c.concentrationInAssay.stockUnit}" is not a unit of ${c.concentrationInAssay.unit}`);
     const exact = Dec.shift(Dec.fromNumberExact(c.concentrationInAssay.value), -u.exp10);
     return { component: c.index, value: Dec.toString(Dec.roundSig(exact, PRECISION.concentrations)), unit: u.symbol };
   });
@@ -59,11 +58,11 @@ export function concentrations(result, stockUnits) {
 const ratio = (x) => sig(x, PRECISION.ratios);
 
 /** Ratios and fractions at PRECISION.ratios significant figures (PROVISIONAL). Withheld values stay withheld. */
-export function ratios(result) {
-  const v = result.values;
+export function ratios(rec) {
+  const v = rec.values;
   return Object.freeze({
-    overageFraction: ratio(v.overageFraction),
-    antibodyFraction: ratio(v.antibodyFraction),
+    overageFraction: ratio(v.overageFraction.value),
+    antibodyFraction: ratio(v.antibodyFraction.value),
     components: v.components.map((c) => ({
       component: c.index,
       ratio: c.ratio.withheld ? { withheld: true, reason: c.ratio.reason } : ratio(c.ratio.value),

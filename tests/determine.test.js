@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { determine } from '../src/engine/determine.js';
+import { record } from '../src/engine/result.js';
 import { pipettingList, perTestVolumes, concentrations, ratios, PRECISION } from '../src/engine/format.js';
 import { sig, Dec } from '../src/engine/numfmt.js';
 import { quantity } from '../src/engine/units.js';
@@ -53,8 +54,8 @@ test('no output is ever non-finite or -0 (C5-FX-19), on every computed panel', (
 
 // ---- invariance ----------------------------------------------------------------
 test('C5-IV-01 and C5-DT-04: the displayed total is the exact sum of the displayed pipetted volumes', () => {
-  for (const { result } of PANELS) {
-    const list = pipettingList(result);
+  for (const { input, result } of PANELS) {
+    const list = pipettingList(record(input));
     const sum = list.steps.map((s) => Dec.fromString(s.volume_uL)).reduce(Dec.add);
     assert.equal(list.total_uL, Dec.toString(sum));
     assert.equal(list.steps[0].what, 'diluent'); // C5-DT-05
@@ -77,7 +78,7 @@ test('C5-FX-04-style: a high antibody fraction with a small diluent, where the r
   };
   const r = determine(input);
   assert.equal(r.status, 'result');
-  const list = pipettingList(r);
+  const list = pipettingList(record(input));
   assert.deepEqual(list.steps.map((s) => s.volume_uL), ['0.0500', '33.3', '33.3', '33.3']);
   assert.equal(list.total_uL, '99.9500');
   assert.equal(sig(r.values.totalCocktail_uL, 3), '100'); // what the v0.1 direction would have shown
@@ -199,13 +200,14 @@ function onePanel(components, over = {}) {
 
 test('components that fill the dispensed volume leave the literal 0 of diluent, never a negative one', () => {
   for (const amount of ['25', '25.0002']) { // 50 µL exactly; 50.0004 µL, equal at 1 nL
-    const r = determine(onePanel([[amount, 'µg', '0.5']]));
+    const p = onePanel([[amount, 'µg', '0.5']]);
+    const r = determine(p);
     assert.equal(r.status, 'result', amount);
     assert.ok(Object.is(r.values.diluentPerTest_uL, 0));
     assert.ok(Object.is(r.values.diluentTotal_uL, 0));
     assert.equal(r.values.componentsFillDispensedVolume, true);
-    assert.equal(pipettingList(r).steps[0].volume_uL, '0');
-    assert.equal(perTestVolumes(r).diluent_uL, '0');
+    assert.equal(pipettingList(record(p)).steps[0].volume_uL, '0');
+    assert.equal(perTestVolumes(record(p)).diluent_uL, '0');
   }
   const over = determine(onePanel([['25.00025', 'µg', '0.5']])); // 50.0005 µL: more than 50 at 1 nL
   assert.equal(over.status, 'rejected');
@@ -339,21 +341,24 @@ test('finite volumes per test whose sum is beyond a double is incomplete with it
 });
 
 test('concentrations display in each component\'s own stock unit, at 6 significant figures, rounded once (ruling 2)', () => {
-  const r = determine(EXAMPLE_INPUT);
-  assert.deepEqual(concentrations(r, ['mg/mL', 'µg/mL', 'g/L']), [
+  const p = clone(EXAMPLE_INPUT);
+  p.components[1].stock = { value: '500', unit: 'µg/mL' };
+  p.components[2].stock = { value: '0.2', unit: 'g/L' };
+  assert.deepEqual(concentrations(record(p)), [
     { component: 1, value: '0.00500000', unit: 'mg/mL' },
     { component: 2, value: '5.00000', unit: 'µg/mL' },
     { component: 3, value: '0.00100000', unit: 'g/L' },
   ]);
   // The shift is exact: 1/3 µg/µL shown in ng/mL is the double's own digits, moved.
-  const third = { values: { components: [{ index: 1, concentrationInAssay: { value: 1 / 3, unit: 'µg/µL' } }] } };
-  assert.deepEqual(concentrations(third, ['ng/mL']), [{ component: 1, value: '333333', unit: 'ng/mL' }]);
-  assert.throws(() => concentrations(r, ['µM', 'mg/mL', 'mg/mL']), /not a unit of µg\/µL/);
+  const third = { values: { components: [{ index: 1, concentrationInAssay: { value: 1 / 3, unit: 'µg/µL', stockUnit: 'ng/mL' } }] } };
+  assert.deepEqual(concentrations(third), [{ component: 1, value: '333333', unit: 'ng/mL' }]);
+  const wrong = { values: { components: [{ index: 1, concentrationInAssay: { value: 1, unit: 'µg/µL', stockUnit: 'µM' } }] } };
+  assert.throws(() => concentrations(wrong), /not a unit of µg\/µL/);
 });
 
 test('ratios and fractions display at 3 significant figures, PROVISIONAL (ruling 3); a withheld ratio stays withheld', () => {
   assert.equal(PRECISION.ratios, 3);
-  const r = ratios(determine(EXAMPLE_INPUT));
+  const r = ratios(record(EXAMPLE_INPUT));
   assert.equal(r.overageFraction, '0.0417');
   assert.equal(r.antibodyFraction, '0.0500');
   assert.deepEqual(r.components.map((c) => [c.ratio, c.scaleFactor]), [['1.00', '1.00'], ['1.00', '2.00'], [{ withheld: true, reason: 'C5-FL-02' }, null]]);

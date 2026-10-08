@@ -58,16 +58,20 @@ const MUTATIONS = [
   ['C5-FL-07 raised for a total equal to the capacity', 'src/engine/flags.js', 'canonicalOfDouble(ctx.totalCocktail, KIND.VOLUME) > canonical(ctx.capacity)', 'canonicalOfDouble(ctx.totalCocktail, KIND.VOLUME) >= canonical(ctx.capacity)'],
   ['C5-FL-11 factor not withheld at zero assay cells', 'src/engine/flags.js', "if (ctx.cells.sign === 0) return { component: c.index, withheld: true, reason: 'assay-cells-zero' };", ''],
   ['displayed total from the unrounded total', 'src/engine/format.js', 'total_uL: Dec.toString(total)', 'total_uL: sig(v.totalCocktail_uL, 3)'],
-  ['pipetting list: components before the diluent', 'src/engine/format.js', "const steps = [{ step: 1, what: 'diluent', volume_uL: volume(v.diluentTotal_uL) }];", "const steps = [];"],
+  ['pipetting list: components before the diluent', 'src/engine/format.js', "const steps = [{ step: 1, what: 'diluent', volume_uL: volume(v.diluentTotal.value) }];", "const steps = [];"],
   // Task 7, item 4: the words of the flags
   ['C5-FL-01 payload: concentration ratio stated inverted', 'src/engine/flags.js', 'it was established at = ${sig(c.ratio.value, 3)}', 'it was established at = ${sig(1 / c.ratio.value, 3)}'],
-  ['C5-FL-01 payload: established and assay volumes swapped', 'src/engine/flags.js', 'established at ${typedQ(inputs.components[i - 1].establishedVolume)}; assay staining volume ${sv};', 'established at ${sv}; assay staining volume ${typedQ(inputs.components[i - 1].establishedVolume)};'],
+  ['C5-FL-01 payload: established and assay volumes swapped', 'src/engine/flags.js', 'established at ${typedQ(d.components[i - 1].establishedVolume)}; assay staining volume ${sv};', 'established at ${sv}; assay staining volume ${typedQ(d.components[i - 1].establishedVolume)};'],
   ['C5-FL-01 statement: the limiting-regime sentence dropped', 'src/engine/flags.js', ' Each basis is exact only in a limiting regime; in the intermediate regime neither transfers the titration exactly, and this tool cannot determine which regime applies.', ''],
   ['C5-FL-05 statement: the two remedies dropped', 'src/engine/flags.js', ' Either an intermediate dilution of those components or a larger batch will make them pipettable; the tool states both and chooses neither.', ''],
   ['C5-FL-08 payload: unevaluated components not named', 'src/engine/flags.js', 'if (f.unevaluated.length) extra +=', 'if (false) extra +='],
   ['C5-FL-11 payload: amount-per-cell factor stated inverted', 'src/engine/flags.js', ': `= ${sig(x.factor, 3)}`', ': `= ${sig(1 / x.factor, 3)}`'],
   ['C5-FL-11 payload: withheld without its reason', 'src/engine/flags.js', "'assay-cells-zero': 'withheld, because the assay cell number is zero',", "'assay-cells-zero': 'withheld',"],
   ['C5-FL-04 payload: provenance words swapped', 'src/engine/flags.js', "vendor: 'vendor recommendation', 'not-recorded': 'provenance not recorded'", "vendor: 'provenance not recorded', 'not-recorded': 'vendor recommendation'"],
+  // Task 7b: the structured result object
+  ['record: a flag\'s component scope dropped', 'src/engine/result.js', 'record.flags = r.flags.map((f) => JSON.parse(JSON.stringify(f)));', 'record.flags = r.flags.map((f) => ({ ...JSON.parse(JSON.stringify(f)), components: [] }));'],
+  ['record: a typed zero recorded as blank', 'src/engine/result.js', "if (value.trim() === '') return { state: 'blank', unit };\n  const q", "if (value.trim() === '' || value.trim() === '0') return { state: 'blank', unit };\n  const q"],
+  ['record: the selected stock unit dropped', 'src/engine/result.js', ': { value: c.concentrationInAssay.value, unit: c.concentrationInAssay.unit, stockUnit: decl.components[c.index - 1].stock.unit },', ': { value: c.concentrationInAssay.value, unit: c.concentrationInAssay.unit, stockUnit: c.concentrationInAssay.unit },'],
   ['blank residual treated as zero', 'src/engine/validate.js', 'const R = read(inputs.residual, KIND.VOLUME);', "const R = read(inputs.residual && inputs.residual.value === '' ? { ...inputs.residual, value: '0' } : inputs.residual, KIND.VOLUME);"],
 ];
 

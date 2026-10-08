@@ -8,13 +8,14 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { determine } from '../src/engine/determine.js';
+import { record } from '../src/engine/result.js';
 import { flagTexts, flagNotebookLines, FLAG_ORDER } from '../src/engine/flags.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const fixture = (id) => JSON.parse(readFileSync(path.join(ROOT, 'tests/fixtures', `${id}.json`), 'utf8')).input;
 const contract = readFileSync(path.join(ROOT, 'docs/engine-io.md'), 'utf8');
 const EXAMPLE = JSON.parse(/```json\n(.*?)```/s.exec(contract)[1]);
-const words = (input) => flagTexts(determine(input), input);
+const words = (input) => flagTexts(record(input));
 const one = (input, code) => {
   const t = words(input).find((x) => x.code === code);
   assert.ok(t, `${code} not raised`);
@@ -23,7 +24,7 @@ const one = (input, code) => {
 
 test('every raised flag has words, in flag order, and no other flag does', () => {
   const r = determine(EXAMPLE);
-  const t = flagTexts(r, EXAMPLE);
+  const t = flagTexts(record(EXAMPLE));
   assert.deepEqual(t.map((x) => x.code), r.flags.map((f) => f.code));
   assert.deepEqual(t.map((x) => x.code), FLAG_ORDER.filter((c) => t.some((x) => x.code === c)));
   for (const x of t) {
@@ -95,10 +96,10 @@ test('C5-FL-11: amount per cell in the assay ÷ as established, under each basis
 });
 
 test('the notebook copy carries every flag in words with every named component (C5-OUT-10)', () => {
-  const lines = flagNotebookLines(determine(EXAMPLE), EXAMPLE);
+  const lines = flagNotebookLines(record(EXAMPLE));
   assert.equal(lines[0], 'Flags');
   for (const code of ['C5-FL-01', 'C5-FL-02', 'C5-FL-04', 'C5-FL-08', 'C5-FL-11', 'C5-FL-12']) assert.ok(lines.some((l) => l.startsWith(`  ${code} — `)), code);
   assert.ok(lines.includes('    Component 2, "CD4 BV421": vendor recommendation.'));
   const clean = fixture('C5-FX-09');
-  assert.deepEqual(flagNotebookLines(determine(clean), clean), ['Flags: none raised.']);
+  assert.deepEqual(flagNotebookLines(record(clean)), ['Flags: none raised.']);
 });
