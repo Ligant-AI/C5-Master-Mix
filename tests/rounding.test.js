@@ -72,6 +72,40 @@ test('values stored just below a decimal tie round down; just above, up', () => 
   }
 });
 
+test('carries inside a decade, at 3, 5 and 6 significant figures, at several decades', () => {
+  // Whether a literal that looks like a tie carries depends on the double it is
+  // stored as, so each case states the leading digits of its stored value.
+  // Carries: the stored value is at or above the tie.
+  const carries = [
+    ['1.995', 3, '2.00', '1.99500000000000010658'],
+    ['2.995', 3, '3.00', '2.99500000000000010658'],
+    ['199.5', 3, '200', '199.5'],
+    ['0.0625', 2, '0.063', '0.0625'],
+    ['5.9995', 4, '6.000', '5.99950000000000027711'],
+    ['9.99995', 5, '10.000', '9.99995000000000011652'],
+    ['49999.5', 5, '50000', '49999.5'],
+    ['12.99995', 6, '13.0000', '12.9999500000000001165'],
+    ['9.999995', 6, '10.0000', '9.99999500000000018928'],
+    ['0.0001999995', 6, '0.000200000', '0.00019999950000000000171'],
+    ['199999.5', 6, '200000', '199999.5'],
+  ];
+  // Look like carries, and are stored just below the tie: no carry.
+  const noCarries = [
+    ['0.01995', 3, '0.0199', '0.01994999999999999898'],
+    ['9.9995', 4, '9.999', '9.99949999999999938893'],
+    ['1.99995', 5, '1.9999', '1.99994999999999989448'],
+    ['3999.95', 5, '3999.9', '3999.94999999999981810'],
+    ['1.999995', 6, '1.99999', '1.99999499999999996724'],
+    ['99.99995', 6, '99.9999', '99.9999499999999983401'],
+  ];
+  for (const [t, n, want, stored] of [...carries, ...noCarries]) {
+    const x = Number(t);
+    assert.ok(Dec.toString(Dec.fromNumberExact(x)).startsWith(stored), `${t} is stored as ${stored}…`);
+    assert.equal(sig(x, n), want, `${t} at ${n} sf`);
+    assert.ok(same(roundDec(x, n), oracle(x, n)), `${t} at ${n} sf against toPrecision`);
+  }
+});
+
 test('every significant-figure boundary from 1e-12 to 1e12, at 3 and 6 significant figures', (t) => {
   // At each decade, the tie below the next power of ten (999.5 at 3 sf below
   // 1000) and the doubles either side of it: each must round as the exact
