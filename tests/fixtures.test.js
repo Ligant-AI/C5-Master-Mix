@@ -33,7 +33,7 @@ const decEqual = (a, b) => Dec.cmp(Dec.fromString(String(a)), Dec.fromString(Str
 const pick = (o, keys) => Object.fromEntries(keys.filter((k) => o[k] !== undefined).map((k) => [k, o[k]]));
 
 test('every supplied fixture has an id, an input and an expected status', () => {
-  assert.equal(FIXTURES.size, 46); // v3: C5-REF-01 added
+  assert.equal(FIXTURES.size, 48); // v4: C5-Q1 replaces PENDING-Q1; C5-UNIT-molar and C5-UNIT-molar-mass added
   for (const [id, x] of FIXTURES) assert.ok(id && x.input && x.expect && x.expect.status, id);
 });
 

@@ -1,6 +1,6 @@
 # C5 Master Mix: engine I/O contract
 
-**Status:** accepted by Adacs (Task 6a review), with the C5-FL-08 unevaluated-components amendment.
+**Status:** accepted by Adacs (Task 6a review), with the C5-FL-08 unevaluated-components amendment, the computed-overflow amendment (Task 6b review) and NADIRA's Q1 ruling of 8 October 2026 (Task 13).
 **Engine version:** 0.1.0. **URS:** v1.0 (citations checked against draft v0.2.3, which Adacs confirmed identical on every cited line).
 **Purpose:** the inputs `determine()` receives and the outputs acceptance 3 compares, so that the fixtures and the Python reimplementation can be written from the URS and this contract alone, without reading the engine.
 
@@ -146,7 +146,7 @@ All quantities in base units (§1.2). `D`, `R` are the dispensed and residual vo
 | `svAssay_uL` | `D + R` | C5-SV-03 |
 | `nEff` | percentage: `n * (1 + p / 100)`; additional tests: `n + k`; dead volume: `n + V_dead / D` | C5-OV-04 |
 | `overageFraction` | percentage: `p / 100`; additional tests: `k / n`; dead volume: `V_dead / (n * D)` | C5-OV-04, DT-06 (see note 1) |
-| `stockVolumePerTest_uL` (a_i) | amount form: `q_i / c_i`; concentration form: `(q_i * SV_i) / c_i`; stock-volume form: `q_i` (in µL) | §5.4 |
+| `stockVolumePerTest_uL` (a_i) | amount form: `q_i / c_i`; concentration form with `SV_i` recorded: `(q_i * SV_i) / c_i`; concentration form with `SV_i` not recorded: `(q_i * SV_assay) / c_i`, with `SV_assay` the computed `D + R` (Q1, ruled by NADIRA, 8 October 2026: the entered concentration is carried into the assay; `v_i = a_i`, basis not applied, C5-FL-02, ratio withheld); stock-volume form: `q_i` (in µL) | §5.4; Q1 ruling |
 | `scaleFactor` | preserve concentration and `SV_i` recorded: the literal 1 if `SV_assay` equals `SV_i`, else `SV_assay / SV_i`; otherwise `null` | C5-UN-11 |
 | `volumePerTest_uL` (v_i) | preserve concentration and `SV_i` recorded: `a_i * s_i`; otherwise `a_i` | §5.4 |
 | `volumeInCocktail_uL` (V_i) | `v_i * nEff` | §5.4 |
@@ -195,7 +195,7 @@ rejection = { "code", "component"?: index, "quantity"?: field, "message", ...det
 ```
 
 - **Incomplete** (no result yet; not a rejection): `field` is one of `dispensed`, `residual`, `assayCells`, `samples`, `overage.form`, `overage.value`, `basis`, `diluent`, `minTransfer`, `capacity`, `label`, `intended`, `stock`, `establishedVolume`, `establishedCells`, `provenance`. `reason` is `blank`, `no-unit`, `invalid` (includes a comma), `unrepresentable`, or `not-selected`. `basis` is incomplete only where C5-CP-07 requires it.
-- **Rejected**: every rule whose own inputs are present is applied, even while other fields are incomplete; rejected takes precedence. `code` is one of C5-HI-01 to C5-HI-06 and C5-HI-08 to C5-HI-11 (C5-HI-07 is withdrawn and never appears), in that order, by component index within a code, followed by the branches **pending a ruling**: `PENDING-Q1` (a concentration-type intended quantity whose `SV_i` is not recorded), `PENDING-Q2` (a stock volume per test with no stock concentration), `PENDING-Q4` (an established staining volume ≤ 0, an established cell number < 0, or a capacity ≤ 0). `PENDING-*` codes are not URS IDs. C5-HI-06 carries `"components": [{ "component": i, "volumePerTest_uL": "<3 s.f.>" }]` and `"total_uL"`, the exact decimal sum of those displayed volumes; it is decided only once validation finds no other rejection.
+- **Rejected**: every rule whose own inputs are present is applied, even while other fields are incomplete; rejected takes precedence. `code` is one of C5-HI-01 to C5-HI-06 and C5-HI-08 to C5-HI-11 (C5-HI-07 is withdrawn and never appears), in that order, by component index within a code, followed by the branches **pending a ruling**: `PENDING-Q2` (a stock volume per test with no stock concentration), `PENDING-Q4` (an established staining volume ≤ 0, an established cell number < 0, or a capacity ≤ 0). `PENDING-*` codes are not URS IDs. (`PENDING-Q1` was removed on NADIRA's Q1 ruling of 8 October 2026; that case is now computed, §2.1.) C5-HI-06 carries `"components": [{ "component": i, "volumePerTest_uL": "<3 s.f.>" }]` and `"total_uL"`, the exact decimal sum of those displayed volumes; it is decided only once validation finds no other rejection.
 - **Computed values beyond the range of a double** (Task 6b review, ruling 1). Typed values can each be representable while a value computed from them is not. Every computed value below is checked, in the order shown, as it is computed; the first that is not finite ends the determination with `"status": "incomplete"` and one entry, `reason` `"unrepresentable"`, in the field shown. Not C5-HI-06, whose message lists displayable volumes. No non-finite value is ever returned.
 
   | Computed value | `field` | `component` |
@@ -348,4 +348,4 @@ Built by hand from §2.1, not by running the engine. The inputs are chosen so th
 - The derivation text, statements, register, bench sheet, notebook copy and visuals (Tasks 8 and 9): rendered from the result, compared by acceptance 12 and the headless checks, not by acceptance 3.
 - Display values (3 and 6 significant figures, and the displayed total as the exact sum of displayed volumes, C5-DT-04): derived from these unrounded values by `numfmt.js`; tested in Task 6b.
 - The comparison tolerance for acceptance 3 is open item 5 (`src/engine/tolerances.js`, PROVISIONAL).
-- Q1 and the proposed Q4 cases compute nothing until ruled on.
+- The proposed Q4 cases, and Q2 (a stock volume per test with no stock concentration), compute nothing until ruled on. Q1 is ruled (NADIRA, 8 October 2026; §2.1).

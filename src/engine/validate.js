@@ -53,7 +53,6 @@ export const RULES = Object.freeze(['C5-HI-01', 'C5-HI-02', 'C5-HI-03', 'C5-HI-0
 // Branches that do not compute until a question is ruled on (CLAUDE.md §3).
 // Not URS IDs: the URS IDs are frozen.
 export const PENDING = Object.freeze({
-  Q1: 'PENDING-Q1',
   Q2: 'PENDING-Q2',
   Q4: 'PENDING-Q4',
 });
@@ -221,11 +220,9 @@ export function validate(inputs) {
   }
 
   // ---- branches pending a ruling --------------------------------------------
-  for (const c of components) {
-    if (c.intended.status === 'ok' && c.intended.kind === KIND.CONCENTRATION && c.estVolume === 'not-recorded') {
-      reject(PENDING.Q1, `${c.name}: not yet supported, pending ruling on question Q1. The intended quantity, ${typed(c.intended)}, is a concentration, and the staining volume it was established at is not recorded; what is computed for this case has not been decided. Nothing is computed for it.`, { component: { row: c.row, label: c.label } });
-    }
-  }
+  // Q1 is ruled (NADIRA, 8 October 2026): a concentration whose established
+  // staining volume is not recorded is carried at the entered concentration
+  // into the assay (determine.js). It is no longer held.
   // Q2 covers a volume of stock per test with NO stock concentration entered
   // (Task 5 review, ruling 5). With one entered, the component is computed:
   // its concentration in the assay is c_stock × v ÷ SV_assay.

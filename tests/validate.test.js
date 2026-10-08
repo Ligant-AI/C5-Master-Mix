@@ -274,14 +274,11 @@ test('C5-CP-07: the basis is required only where a recorded established volume d
   assert.equal(r.basisRequired, false);
 });
 
-test('Q1: a concentration-type quantity with its established staining volume not recorded is held, pending the ruling', () => {
+test('Q1, as ruled (NADIRA, 8 October 2026): a concentration with its established staining volume not recorded is no longer held', () => {
   const r = run((p) => { p.components[0].intended = { value: '5', unit: 'µg/mL' }; p.components[0].establishedVolume = { notRecorded: true }; });
-  const x = only(r, PENDING.Q1);
-  assert.match(x.message, /^Component 1, "CD3 BUV395": not yet supported, pending ruling on question Q1\./);
-  assert.match(x.message, /The intended quantity, 5 µg\/mL, is a concentration/);
-  assert.match(x.message, /Nothing is computed for it\./);
-  // With the staining volume recorded, Q1 does not arise.
-  assert.deepEqual(codes(run((p) => { p.components[0].intended = { value: '5', unit: 'µg/mL' }; })), []);
+  assert.equal(r.status, 'ok');
+  assert.deepEqual(codes(r), []);
+  assert.ok(!('Q1' in PENDING));
 });
 
 test('Q2: a volume of stock per test with no stock concentration is held, pending the ruling; with one, it is computed (ruling 5)', () => {

@@ -139,6 +139,12 @@ export function flagTexts(rec) {
         });
         break;
       case 'C5-FL-02':
+        // How each is carried, and that the basis was not applied (C5-DT-03;
+        // for a concentration, NADIRA's Q1 ruling of 8 October 2026).
+        components = per(f, (i) => (comp(i).form === 'concentration'
+          ? `carried at its entered concentration, ${typedQ(d.components[i - 1].intended)}, into the assay; the transfer basis was not applied.`
+          : `carried at its entered per-test quantity, ${typedQ(d.components[i - 1].intended)}; the transfer basis was not applied.`));
+        break;
       case 'C5-FL-12':
         components = per(f, () => 'named.');
         break;

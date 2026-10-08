@@ -201,6 +201,6 @@ test('stock volume per test: a volume is taken as entered; an amount is amount �
   assert.deepEqual(stockVolumePerTest(quantity('2.5', 'µL'), null), { value: 2.5, unit: 'µL', form: 'stock-volume' });
   // 0.25 µg at 0.2 mg/mL (0.2 µg/µL) is 1.25 µL.
   assert.equal(stockVolumePerTest(quantity('0.25', 'µg'), quantity('0.2', 'mg/mL')).value, 0.25 / 0.2);
-  // The concentration form needs a staining volume: not reduced here (Q1 and Task 6).
+  // The concentration form needs a staining volume: not reduced here (determine.js).
   assert.throws(() => stockVolumePerTest(quantity('5', 'µg/mL'), quantity('0.5', 'mg/mL')), /not reduced here/);
 });

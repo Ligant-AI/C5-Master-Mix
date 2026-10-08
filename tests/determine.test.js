@@ -259,10 +259,29 @@ test('a stock volume per test with a stock concentration is computed (ruling 5)'
   assert.deepEqual(c.concentrationInAssay, { value: (0.2 * 2) / 50, unit: 'µg/µL' });
 });
 
-test('held branches compute nothing: PENDING-Q1, PENDING-Q2 and PENDING-Q4', () => {
-  const q1 = onePanel([['5', 'µg/mL', '0.5']]);
-  q1.components[0].establishedVolume = { notRecorded: true };
-  assert.deepEqual(determine(q1).rejections.map((x) => [x.code, x.component]), [['PENDING-Q1', 1]]);
+test('Q1, as ruled (NADIRA, 8 October 2026): carried at the entered concentration, a = (q × SV_assay) ÷ c, the basis not applied', () => {
+  const p = onePanel([['5', 'µg/mL', '0.5']], { residual: { value: '20', unit: 'µL' } });
+  p.components[0].establishedVolume = { notRecorded: true };
+  for (const basis of ['', 'preserve-concentration', 'preserve-amount']) {
+    const r = determine({ ...p, basis });
+    assert.equal(r.status, 'result', basis);
+    const c = r.values.components[0];
+    const q = quantity('5', 'µg/mL').value;
+    const SV = 50 + 20;
+    assert.equal(r.values.svAssay_uL, SV);
+    assert.equal(c.form, 'concentration');
+    assert.equal(c.stockVolumePerTest_uL, (q * SV) / quantity('0.5', 'mg/mL').value); // in that order
+    assert.equal(c.volumePerTest_uL, c.stockVolumePerTest_uL);
+    assert.equal(c.basisApplied, 'not-applied');
+    assert.equal(c.scaleFactor, null);
+    assert.deepEqual(c.ratio, { withheld: true, reason: 'C5-FL-02' });
+    assert.deepEqual(r.flags.find((f) => f.code === 'C5-FL-02').components, [1]);
+    // The concentration in the assay is the entered one.
+    assert.ok(relativeDifference(c.concentrationInAssay.value, q) <= TOLERANCES.roundTrip.relative);
+  }
+});
+
+test('held branches compute nothing: PENDING-Q2 and PENDING-Q4', () => {
   const q2 = onePanel([['2', 'µL', '']]);
   assert.deepEqual(determine(q2).rejections.map((x) => [x.code, x.component]), [['PENDING-Q2', 1]]);
   const q4 = onePanel([['1', 'µg', '0.5']]);

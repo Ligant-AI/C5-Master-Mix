@@ -49,7 +49,11 @@ test('C5-FL-01: the volume established at, the assay volume, the delivered ÷ es
 
 test('C5-FL-02 and C5-FL-12: each named, with the URS statement', () => {
   assert.match(one(EXAMPLE, 'C5-FL-02').statement, /its concentration ratio is withheld, because the concentration it was established at is unknown\. The transfer basis has not been applied to it\./);
-  assert.deepEqual(one(EXAMPLE, 'C5-FL-02').components.map((c) => c.text), ['Component 3, "CD8 BV711": named.']);
+  assert.deepEqual(one(EXAMPLE, 'C5-FL-02').components.map((c) => c.text), ['Component 3, "CD8 BV711": carried at its entered per-test quantity, 0.1 µg; the transfer basis was not applied.']);
+  // A concentration (NADIRA's Q1 ruling): carried at the entered concentration, the basis not applied.
+  const q1 = one(fixture('C5-Q1'), 'C5-FL-02');
+  assert.match(q1.statement, /The transfer basis has not been applied to it\./);
+  assert.match(q1.components[0].text, /: carried at its entered concentration, [\d.]+ (µg\/mL|ng\/mL|mg\/mL), into the assay; the transfer basis was not applied\.$/);
   assert.match(one(EXAMPLE, 'C5-FL-12').statement, /whether the assay reproduces the condition they were established under cannot be determined\./);
 });
 

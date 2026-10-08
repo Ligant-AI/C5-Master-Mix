@@ -150,7 +150,9 @@ export function derivationHtml(rec) {
     h(`${nEffRel} = ${tests(v.nEff.value)}, used unrounded. Overage fraction = ${fracRel} = ${rats.overageFraction}.`),
     ...v.components.map((c, k) => {
       const dc = d.components[c.index - 1];
-      const a = { amount: `a = q ÷ c = ${typed(dc.intended)} ÷ ${typed(dc.stock)}`, concentration: `a = q × SV_i ÷ c = ${typed(dc.intended)} × ${typed(dc.establishedVolume)} ÷ ${typed(dc.stock)}`, 'stock-volume': `a = ${typed(dc.intended)}` }[c.form];
+      const a = { amount: `a = q ÷ c = ${typed(dc.intended)} ÷ ${typed(dc.stock)}`, concentration: dc.establishedVolume.state === 'not-recorded'
+        ? `a = q × SV ÷ c = ${typed(dc.intended)} × ${vol(v.svAssay.value)} µL ÷ ${typed(dc.stock)} (the established staining volume is not recorded, so the entered concentration is carried into the assay: NADIRA's Q1 ruling, 8 October 2026)`
+        : `a = q × SV_i ÷ c = ${typed(dc.intended)} × ${typed(dc.establishedVolume)} ÷ ${typed(dc.stock)}`, 'stock-volume': `a = ${typed(dc.intended)}` }[c.form];
       const s = c.scaleFactor
         ? (c.scaleFactor.exactlyOne ? 's = SV ÷ SV_i = exactly 1 (the volumes are equal under C5-UN-10)' : `s = SV ÷ SV_i = ${vol(v.svAssay.value)} µL ÷ ${typed(dc.establishedVolume)} = ${rat(c.scaleFactor.value)}`)
         : null;

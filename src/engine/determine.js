@@ -79,7 +79,12 @@ export function determine(inputs) {
 
     let a;
     if (form === 'amount') a = q.value / stock.value;
-    else if (form === 'concentration') a = (q.value * c.estVolume.value) / stock.value; // SV_i recorded: Q1 is held otherwise
+    else if (form === 'concentration') {
+      // Q1, ruled by NADIRA, 8 October 2026: with the established staining
+      // volume not recorded, the entered concentration is carried into the
+      // assay, a = (q × SV_assay) ÷ c, the basis not applied.
+      a = recorded ? (q.value * c.estVolume.value) / stock.value : (q.value * SV) / stock.value;
+    }
     else a = q.value; // stock-volume, µL
 
     let basisApplied;
