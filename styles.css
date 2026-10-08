@@ -1,0 +1,253 @@
+/* Ligant Bench Tools — C7 Reconstitution.
+   Brand Guidelines v1.1 (June 2026): §04 colour, §05 typography, §03 the mark.
+   Self-hosted type only, and nothing loaded from outside the page's own origin
+   (C7-NF-12): no analytics script either, unlike C3 1.0.1, because C7 displays
+   the standing privacy statement verbatim.
+
+   The shell, panels, controls, footer and method panel are C3's
+   (`C3-Dilution-Planner/styles.css`), which are C4's, copied rather than
+   re-derived so the tools are one system (C7-NF-11). What is C7's own — the
+   result figures, the upper-bound, not-computable, withheld and rejected
+   states — is built from the same tokens and spacing, below the marked line. */
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; font-display: swap; src: url('./fonts/Inter-Regular.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 600; font-display: swap; src: url('./fonts/Inter-SemiBold.woff2') format('woff2'); }
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 700; font-display: swap; src: url('./fonts/Inter-Bold.woff2') format('woff2'); }
+/* Five faces, as C4 loads: Inter 400/600/700 and Plex Mono 400/600. Nothing
+   sets mono at 700, so no Bold is served for it. */
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('./fonts/IBMPlexMono-Regular.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 600; font-display: swap; src: url('./fonts/IBMPlexMono-SemiBold.woff2') format('woff2'); }
+
+/* Shared suite tokens are in src/tokens.css, linked ahead of this file. */
+:root { --tile-radius: 22%; }
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--text-primary); font-family: var(--font); font-size: 14px; font-weight: 400; line-height: 1.55; -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%; }
+/* Weight contrast is 700 against 400, never 600 against 500 (§05). */
+h1, h2, h3, h4 { margin: 0; letter-spacing: -0.011em; color: var(--text-primary); text-wrap: balance; }
+h1 { font-size: 25px; font-weight: 700; }
+h2 { font-size: 15px; font-weight: 600; }
+h3 { font-size: 13px; font-weight: 600; }
+p { margin: 0; }
+a { color: var(--brand-teal); }
+strong, b { font-weight: 700; }
+/* Digits, identifiers and aligned columns are Plex Mono (§05). */
+.num, code, input.num, select.num, textarea.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+[hidden] { display: none !important; }
+
+.eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); }
+
+.skip-link { position: absolute; left: 12px; top: -60px; z-index: 100; padding: 9px 14px; background: var(--surface); color: var(--brand-teal); border: 1px solid var(--brand-teal); border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; text-decoration: none; transition: top .12s ease; }
+.skip-link:focus { top: 12px; }
+
+/* ---------- shell ---------- */
+
+.app { max-width: 1400px; margin: 0 auto; padding: 0 24px 72px; }
+
+/* §03 The mark — Council · Ringed. Never recoloured, rotated or stretched. */
+
+
+/* System error only, never a bad result: the one place the restricted red is used. */
+.system-error { background: var(--brand-error); color: #fff; padding: 8px 20px; margin-bottom: 16px; border-radius: var(--radius-sm); font-weight: 700; }
+
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 1060px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+.rail { display: flex; flex-direction: column; gap: 16px; }
+/* One column: inputs, then the plan, then the method. Flattening the left
+   column promotes its panels to layout children, which `order` can arrange. */
+@media (max-width: 1060px) {
+  .layout { gap: 16px; }
+  .layout > .stack { display: contents; }
+  .layout > .rail { order: 1; }
+  .layout .method-panel { order: 2; }
+}
+.stack { display: flex; flex-direction: column; gap: 16px; }
+
+/* ---------- panels ---------- */
+
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+/* The declarations line inside this panel is sticky, and a clipping ancestor
+   would silently kill it (C7-NF-04). */
+.panel-series { overflow: visible; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 16px; border-bottom: 1px solid var(--border); }
+.panel-head .step { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--brand-teal); color: #fff; font-family: var(--mono); font-size: 11px; font-weight: 600; margin-right: 10px; flex-shrink: 0; }
+.panel-head .titles { display: flex; align-items: center; min-width: 0; }
+.panel-head .optional { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+.panel-body { padding: 16px; }
+.panel-body.stack { gap: 14px; }
+
+.hint { color: var(--text-muted); font-size: 12px; line-height: 1.5; }
+
+/* ---------- forms ---------- */
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field > label, .field > .label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.field > label.check { flex-direction: row; align-items: center; gap: 6px; display: inline-flex; font-weight: 400; color: var(--text-primary); font-size: 13px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.optional, .help-inline { color: var(--text-muted); font-weight: 400; }
+.help { color: var(--text-muted); font-size: 12px; line-height: 1.5; }
+
+select, input[type=text], textarea { font-family: inherit; font-size: 13px; color: var(--text-primary); background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 7px 9px; width: 100%; }
+select.num, input.num, textarea.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+input::placeholder, textarea::placeholder { color: var(--text-muted); font-family: var(--font); }
+select:focus-visible, input:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--brand-teal); outline-offset: 1px; }
+input:disabled, select:disabled, textarea:disabled { background: var(--surface-inset); color: var(--text-muted); }
+input[type=checkbox], input[type=radio] { accent-color: var(--brand-teal); width: 14px; height: 14px; margin: 0; cursor: pointer; flex: none; }
+.radios { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.radios label { font-size: 13px; font-weight: 400; color: var(--text-primary); display: inline-flex; gap: 7px; align-items: center; }
+.radios.stacked { flex-direction: column; }
+.radios.stacked label { align-items: flex-start; line-height: 1.45; }
+.radios.stacked label input { margin-top: 2px; }
+.radios label > span { flex: 1 1 auto; }
+label.disabled { color: var(--text-muted); }
+.suggested-dot { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--brand-amber); margin-right: 6px; vertical-align: middle; }
+
+button { font-family: inherit; font-size: 12px; font-weight: 600; color: var(--text-secondary); background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 7px 12px; cursor: pointer; }
+button:hover { background: var(--surface-inset); color: var(--text-primary); }
+button.primary { color: #fff; background: var(--brand-teal); border-color: transparent; }
+button.primary:hover { background: #0a6353; color: #fff; }
+.button-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+details.options > summary { cursor: pointer; font-size: 12px; font-weight: 600; color: var(--text-secondary); padding: 4px 0; list-style: none; }
+details.options > summary::-webkit-details-marker { display: none; }
+details.options > summary::before { content: "+ "; color: var(--text-muted); font-family: var(--mono); }
+details.options[open] > summary::before { content: "−  "; }
+details.options pre { margin: 11px 0 0; padding: 11px 13px; max-height: 340px; overflow: auto; background: var(--surface-sunken); border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: var(--mono); font-size: 12px; line-height: 1.5; color: var(--text-primary); white-space: pre; }
+
+/* ---------- the plan ---------- */
+
+/* C7-NF-04: the result is never read apart from the declarations and flags it
+   was computed under, so both stick to the top of the viewport, as C4 and C3 do. */
+.series-sticky { position: sticky; top: 16px; z-index: 2; background: var(--surface); padding-top: 2px; }
+.rail-declarations { margin: 0 0 12px; padding-bottom: 12px; border-bottom: 1px solid var(--grid); font-size: 11.5px; }
+.declarations-content { display: flex; flex-wrap: wrap; column-gap: 16px; row-gap: 3px; }
+.decl { white-space: nowrap; color: var(--text-secondary); }
+.decl b { font-weight: 400; color: var(--text-muted); margin-right: 3px; }
+.decl.absent { color: var(--text-muted); }
+.decl.fixed { border-bottom: 1px dotted var(--border-strong); }
+.decl.empty { color: var(--text-muted); white-space: normal; }
+
+/* Nothing computed yet: a statement, not a result. */
+.state-block.incomplete { text-align: center; padding: 22px 20px 26px; color: var(--text-muted); font-size: 13px; }
+.state-block.incomplete h3 { color: var(--text-primary); margin-bottom: 6px; }
+.state-block.incomplete ul { display: inline-block; text-align: left; margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.6; }
+/* Withheld: no plan is shown; the reason occupies the plan's position. Not an
+   error, so never red (§04) — the distinction is structural, a double rule. */
+.state-block.withheld { border-left: 6px double var(--text-primary); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 10px 14px; margin: 0 0 10px; background: var(--surface-sunken); font-size: 12.5px; line-height: 1.5; color: var(--text-secondary); }
+.state-block.withheld h3 { margin-bottom: 4px; }
+.state-block.withheld ul { margin: 0; padding-left: 18px; }
+.state-block .code { font-weight: 700; color: var(--text-primary); margin-right: 6px; }
+
+.vessel { border: 1px solid var(--border); border-radius: var(--radius-sm); margin: 0 0 10px; padding: 12px 14px; background: var(--surface); break-inside: avoid; }
+.vessel.intermediate { border-style: dashed; background: var(--surface-sunken); }
+.vessel.zero { border-style: dotted; }
+.vessel-head { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; font-size: 13px; }
+.vessel-head .label { font-family: var(--mono); font-weight: 600; font-size: 14px; color: var(--text-primary); }
+.vessel-head .kind { font-weight: 600; color: var(--text-primary); }
+.vessel-head .meta { color: var(--text-muted); font-size: 12px; }
+.vessel-head .flags { margin-left: auto; display: inline-flex; gap: 4px; }
+.flag-chip { font-size: 11px; font-weight: 700; background: var(--attention-wash); color: var(--text-primary); border-left: 2px solid var(--brand-amber); border-radius: var(--radius-sm); padding: 1px 6px; }
+.vessel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 6px 14px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--grid); }
+.vg { font-size: 12px; }
+.vg .k { display: block; color: var(--text-muted); font-size: 11px; }
+.vg .v { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 13px; color: var(--text-primary); }
+.vg .sub { display: block; color: var(--text-muted); font-size: 11px; font-family: var(--font); letter-spacing: 0; text-transform: none; font-weight: 400; line-height: 1.45; }
+/* §07 the amber rule: a flag is a human decision moment, marked by the rule on
+   the attention wash, as C4 and C1 mark theirs. */
+.vessel-flags, .plan-flags { margin: 10px 0 0; padding: 0; list-style: none; }
+.plan-flags { margin: 10px 0; }
+.vessel-flags li, .plan-flags li { border-left: 2px solid var(--brand-amber); border-radius: var(--radius-sm); background: var(--attention-wash); padding: 10px 12px; font-size: 12px; line-height: 1.5; margin-top: 10px; color: var(--text-primary); }
+.vessel-flags .code, .plan-flags .code { font-weight: 700; margin-right: 6px; color: var(--text-primary); }
+.plan-summary { font-size: 12px; margin: 10px 0 0; color: var(--text-muted); }
+#notebook-text { margin-top: 8px; font-size: 12px; white-space: pre; background: var(--surface-sunken); }
+
+/* ---------- derivation ---------- */
+
+.derivation { font-size: 12.5px; line-height: 1.6; color: var(--text-secondary); }
+.derivation h3 { color: var(--text-primary); margin: 16px 0 6px; }
+.derivation h3:first-child { margin-top: 0; }
+.derivation ul { margin: 0; padding-left: 18px; }
+.derivation p { margin-top: 9px; }
+.derivation .echo { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin-top: 13px; padding-top: 13px; border-top: 1px solid var(--grid); font-size: 12px; }
+.derivation .echo dt { color: var(--text-muted); }
+.derivation .echo dd { margin: 0; color: var(--text-secondary); }
+.notes { color: var(--text-muted); }
+
+/* ---------- the method panel ---------- */
+
+.prose h3 { color: var(--text-primary); margin: 18px 0 7px; }
+.prose h3:first-child { margin-top: 0; }
+.prose p, .prose li { color: var(--text-secondary); font-size: 13px; line-height: 1.6; }
+.prose p + p { margin-top: 9px; }
+.prose ul, .prose ol { margin: 7px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; }
+.prose strong { color: var(--text-primary); font-weight: 700; }
+.prose table { width: 100%; border-collapse: collapse; margin-top: 9px; font-size: 12px; }
+.prose th { text-align: left; font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); padding: 10px 10px 10px 0; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.prose td { padding: 8px 10px 8px 0; border-bottom: 1px solid var(--grid); vertical-align: top; color: var(--text-secondary); line-height: 1.5; }
+.prose td:first-child { font-weight: 600; color: var(--text-primary); }
+.prose tr:last-child td { border-bottom: none; }
+.prose .lede { border-left: 2px solid var(--brand-amber); padding: 2px 0 2px 12px; color: var(--text-primary); }
+.status { font-family: var(--mono); font-size: 11px; }
+.status.derived, .status.disclosed { color: var(--brand-teal); font-weight: 600; }
+
+/* ---------- footer ---------- */
+
+
+.disclaimer { margin-top: 24px; padding: 15px 17px; border: 1px solid var(--border); border-left: 2px solid var(--brand-amber); border-radius: var(--radius); background: var(--surface); font-size: 12px; line-height: 1.6; color: var(--text-secondary); }
+.disclaimer strong { color: var(--text-primary); font-weight: 700; }
+.colophon { margin-top: 16px; display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-muted); }
+
+/* ---------- C7's own: the result ---------- */
+
+.field > label.check, label.check.whole-vial { display: flex; flex-direction: row; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.45; color: var(--text-primary); font-weight: 400; }
+label.check.whole-vial { padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-sunken); }
+label.check.whole-vial input { margin-top: 2px; }
+.help.attention { border-left: 2px solid var(--brand-amber); background: var(--attention-wash); padding: 8px 10px; border-radius: var(--radius-sm); color: var(--text-primary); }
+
+/* Short flag titles kept in view with the declarations (C7-NF-04). The full
+   text of every flag is in the result below; the summary links to it. */
+.flag-summary { list-style: none; margin: 0 0 12px; padding: 0 0 12px; border-bottom: 1px solid var(--grid); display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; }
+.flag-summary li a { display: block; color: var(--text-primary); text-decoration: none; border-left: 2px solid var(--brand-amber); background: var(--attention-wash); border-radius: var(--radius-sm); padding: 3px 8px; line-height: 1.4; }
+.flag-summary li a:hover { text-decoration: underline; }
+.flag-summary li.none { color: var(--text-muted); border-left: 2px solid var(--border); padding: 3px 8px; }
+.flag-summary .code, .result-flags .code { font-family: var(--mono); font-weight: 600; margin-right: 7px; }
+
+.result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; margin-bottom: 10px; }
+.figure { display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; background: var(--surface); min-width: 0; }
+.figure.lead { border-color: var(--brand-teal); box-shadow: inset 3px 0 0 var(--brand-teal); }
+.figure .k { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+.figure .role { font-weight: 400; margin-left: 4px; padding: 0 5px; border: 1px solid var(--border); border-radius: 999px; font-size: 10.5px; white-space: nowrap; }
+.figure .v { font-size: 22px; font-weight: 600; color: var(--text-primary); line-height: 1.25; letter-spacing: -0.01em; }
+.figure.small .v { font-size: 15px; }
+.figure .u { font-size: 13px; font-weight: 400; color: var(--text-secondary); }
+.figure .sub { font-size: 11.5px; color: var(--text-muted); line-height: 1.45; }
+.figure.conc .v { font-size: 20px; }
+/* Upper bound: carried by the words "at most" and a boxed label, never colour alone. */
+.bound { display: inline-block; font-family: var(--font); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; border: 1.5px solid var(--text-primary); border-radius: 3px; padding: 0 4px; vertical-align: 3px; }
+.figure.upper { border-style: solid; border-width: 1px 1px 1px 4px; border-left-color: var(--text-primary); }
+.figure.partial { border-style: dashed; }
+/* Not computable: dotted, with the reason in the cell. */
+.figure.notcomputable { border-style: dotted; border-width: 2px; background: var(--surface-sunken); }
+.figure.notcomputable .v { font-size: 14px; font-weight: 600; font-style: italic; }
+/* Withheld: the double rule, as C3's withheld plan. */
+.figure.withheld { border-left: 6px double var(--text-primary); background: var(--surface-sunken); }
+.figure.withheld .v { font-size: 14px; font-style: italic; }
+
+.result-flags { margin: 6px 0 0; padding: 0; list-style: none; }
+.result-flags li { border-left: 2px solid var(--brand-amber); border-radius: var(--radius-sm); background: var(--attention-wash); padding: 10px 12px; font-size: 12px; line-height: 1.5; margin-top: 8px; color: var(--text-primary); scroll-margin-top: 380px; }
+.result-flags li strong { font-weight: 700; }
+
+/* Rejected (§7): the one result state that may use the restricted red (§04),
+   and it is still named in words and set apart by position. */
+.state-block.rejected { border-left: 4px solid var(--brand-error); background: var(--error-wash); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 12px 14px; font-size: 12.5px; line-height: 1.5; color: var(--text-primary); }
+.state-block.rejected h3 { margin-bottom: 6px; }
+.state-block.rejected ul { margin: 0; padding-left: 18px; }
+.state-block.rejected .code { font-family: var(--mono); font-weight: 700; margin-right: 6px; }
+
+#privacy .prose p { color: var(--text-primary); }
+.prose td sub { font-size: 9px; }
+
+/* The derivation and the object, inside the stock panel (C7-NF-04). */
+.subsection { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+.sub-h { font-size: 13px; margin-bottom: 10px; }
+.derivation .echo.applied { border-top: none; padding-top: 0; margin-top: 0; }
