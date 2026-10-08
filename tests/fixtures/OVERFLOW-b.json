@@ -1,0 +1,99 @@
+{
+ "id": "OVERFLOW-b",
+ "title": "Sum of volumes per test beyond a double",
+ "standard": "",
+ "assumptions": {
+  "exactTiesAtDisplayedPrecision": false,
+  "powerOfTwoRatios": false,
+  "symmetricInputs": false,
+  "note": "Two components of 1e308 uL per test each, finite alone (N_eff = 1); their sum overflows before C5-HI-06."
+ },
+ "ui": false,
+ "input": {
+  "dispensed": {
+   "value": "50",
+   "unit": "µL"
+  },
+  "residual": {
+   "value": "50",
+   "unit": "µL"
+  },
+  "assayCells": {
+   "value": "1000000",
+   "unit": "cells"
+  },
+  "samples": "1",
+  "overage": {
+   "form": "additional-tests",
+   "value": "0",
+   "unit": ""
+  },
+  "basis": "",
+  "diluent": {
+   "notRecorded": false,
+   "text": "PBS, 2% FBS"
+  },
+  "minTransfer": {
+   "value": "2",
+   "unit": "µL",
+   "defaulted": false
+  },
+  "capacity": {
+   "value": "",
+   "unit": ""
+  },
+  "components": [
+   {
+    "label": "H1",
+    "intended": {
+     "value": "1e308",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "1",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "100",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   },
+   {
+    "label": "H2",
+    "intended": {
+     "value": "1e308",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "1",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "100",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   }
+  ]
+ },
+ "expect": {
+  "status": "incomplete",
+  "incomplete": [
+   {
+    "field": "intended",
+    "reason": "unrepresentable"
+   }
+  ]
+ }
+}

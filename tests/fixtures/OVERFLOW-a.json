@@ -1,0 +1,79 @@
+{
+ "id": "OVERFLOW-a",
+ "title": "Cocktail volume beyond a double",
+ "standard": "",
+ "assumptions": {
+  "exactTiesAtDisplayedPrecision": false,
+  "powerOfTwoRatios": false,
+  "symmetricInputs": false,
+  "note": "1e308 ug at 1 mg/mL gives a finite volume per test; times N_eff = 100 it overflows. Reported on component 1's intended quantity."
+ },
+ "ui": false,
+ "input": {
+  "dispensed": {
+   "value": "50",
+   "unit": "µL"
+  },
+  "residual": {
+   "value": "50",
+   "unit": "µL"
+  },
+  "assayCells": {
+   "value": "1000000",
+   "unit": "cells"
+  },
+  "samples": "96",
+  "overage": {
+   "form": "additional-tests",
+   "value": "4",
+   "unit": ""
+  },
+  "basis": "",
+  "diluent": {
+   "notRecorded": false,
+   "text": "PBS, 2% FBS"
+  },
+  "minTransfer": {
+   "value": "2",
+   "unit": "µL",
+   "defaulted": false
+  },
+  "capacity": {
+   "value": "",
+   "unit": ""
+  },
+  "components": [
+   {
+    "label": "Huge",
+    "intended": {
+     "value": "1e308",
+     "unit": "µg"
+    },
+    "stock": {
+     "value": "1",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "value": "100",
+     "unit": "µL"
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   }
+  ]
+ },
+ "expect": {
+  "status": "incomplete",
+  "incomplete": [
+   {
+    "field": "intended",
+    "reason": "unrepresentable",
+    "component": 1
+   }
+  ]
+ }
+}

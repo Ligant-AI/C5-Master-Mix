@@ -254,6 +254,13 @@ def determine(inp):
     else:
         n_eff = n + ov_d / Dd; overage_fraction = ov_d / (n * Dd)
 
+    def overflow(field, comp=None):
+        e = {"field": field, "reason": "unrepresentable"}
+        if comp is not None: e["component"] = comp
+        return {"status": "incomplete", "engineVersion": ENGINE_VERSION,
+                "rejections": [], "incomplete": [e]}
+    if not math.isfinite(n_eff) or not math.isfinite(overage_fraction):
+        return overflow("overage.value")
     out_comps, sum_v, sum_V = [], 0.0, 0.0
     for p in parsed:
         Q, S, SV = p["Q"], p["S"], p["SV"]
@@ -289,14 +296,15 @@ def determine(inp):
             ratio = {"value": 1 if equal else SV.double / sv_assay}
         else:
             ratio = {"value": 1}
+        checks = [a, v, V] + ([conc["value"]] if conc else []) + ([ratio["value"]] if "value" in ratio else [])
+        if not all(math.isfinite(x) for x in checks):
+            return overflow("intended", p["i"])
         out_comps.append(dict(p=p, index=p["i"], form=frm, basisApplied=applied,
             stockVolumePerTest_uL=a, scaleFactor=scale, volumePerTest_uL=v,
             volumeInCocktail_uL=V, concentrationInAssay=conc, ratio=ratio))
 
-    for x in (sv_assay, n_eff, sum_v, sum_V):
-        if not math.isfinite(x):
-            return {"status": "incomplete", "engineVersion": ENGINE_VERSION,
-                    "rejections": [], "incomplete": [{"field": "dispensed", "reason": "unrepresentable"}]}
+    if not math.isfinite(sum_v):
+        return overflow("intended")
 
     D_c = canon(D.exact, 1000)
     sv_c = canon_double(sum_v, 1000)
@@ -308,6 +316,9 @@ def determine(inp):
     total = Dd * n_eff
     diluent_total = 0 if fills else total - sum_V
     antibody_fraction = sum_V / total
+    for x in (total, sum_V, diluent_total, antibody_fraction):
+        if not math.isfinite(x):
+            return overflow("dispensed")
 
     # ---- flags (section 2.2) ----
     flags = {}
@@ -349,6 +360,8 @@ def determine(inp):
                     f = c["scaleFactor"]["value"] * ratio
                 else:
                     f = ratio
+                if not math.isfinite(f):
+                    return overflow("establishedCells", c["index"])
                 apc.append({"component": c["index"], "factor": f})
     if fl11: add("C5-FL-11", fl11, amountPerCell=apc)
     fl12 = [c["index"] for c in out_comps if c["p"]["EC"].state == "not-recorded"]
