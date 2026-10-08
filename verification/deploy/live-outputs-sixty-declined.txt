@@ -1,0 +1,3 @@
+$ node verification/headless/outputs.mjs https://benchtools.ligant.ai/master-mix/ --only=sixty --decline-consent
+{"check":"C5-FX-23 at 60 components: reason codes on every visual, the VZ-03 axis in view, the VZ-02 legend complete","result":"pass","components":60,"flags":["C5-FL-01","C5-FL-02","C5-FL-04","C5-FL-08","C5-FL-12"],"flaggedComponents":60,"missingCodes":[],"legendComplete":true,"axisChoice":"pinned (sticky within the strip, under the bounded block)","scrollStepsWithRowsInView":38,"stepsWithAxisOutOfView":[],"errors":[]}
+exit=0

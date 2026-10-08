@@ -20,6 +20,10 @@ const VIEW = { width: 1366, height: 650 };
 // controls, verification/mutation/headless-controls.mjs); otherwise all run.
 const onlyArg = process.argv.find((x) => x.startsWith('--only='));
 const want = (key) => !onlyArg || onlyArg.slice(7) === key;
+// --decline-consent: on the hosted pages the suite's consent banner covers the
+// bottom of the viewport until the visitor chooses; with this flag, each page
+// chooses Decline first, as a visitor does. Off by default.
+const DECLINE = process.argv.includes('--decline-consent');
 
 const browser = await chromium.launch();
 let failed = false;
@@ -32,6 +36,10 @@ async function open(input) {
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   await page.goto(base, { waitUntil: 'networkidle' });
+  if (DECLINE) {
+    const decline = page.locator('.lpc button', { hasText: 'Decline' });
+    if (await decline.count()) await decline.first().click();
+  }
   await fill(page, input);
   await page.evaluate(() => document.fonts.ready);
   return { context, page, errors };
