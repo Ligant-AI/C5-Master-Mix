@@ -3,15 +3,18 @@
 # be sent here as well.
 #
 # Copied from C7 (Ligant-AI/C7-Reconstitution at 9b942e3), policy unchanged; only
-# this comment is rewritten. Everything is 'self' except the analytics decided by
-# A. Modi, the same as live C7:
+# this comment is rewritten. Scripts, styles and fonts are 'self' only; images are
+# 'self' plus data: URIs (the favicon is one); connect-src has no 'self'. Beyond
+# that, the policy allows only the analytics decided by A. Modi, the same as live C7:
 #   - Cloudflare Web Analytics, for every visitor: its beacon script from
 #     static.cloudflareinsights.com and its reporting endpoint,
 #     benchtools.ligant.ai/cdn-cgi/rum.
 #   - Google Analytics, loaded only after the visitor clicks Allow in the suite
 #     footer's banner (@ligant/bench-chrome): its script from
-#     www.googletagmanager.com, and the Google hosts listed in img-src and
-#     connect-src that it reports to.
+#     www.googletagmanager.com; images from *.google-analytics.com and
+#     *.googletagmanager.com; connections to *.google-analytics.com,
+#     *.analytics.google.com, *.googletagmanager.com, www.google.com and
+#     *.g.doubleclick.net.
 # No other edge-injected script (Rocket Loader, email obfuscation) may be added
 # without changing this policy and the page's disclosure together.
 /*

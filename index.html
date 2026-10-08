@@ -3,16 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Every resource from the page's own origin, except the analytics decided by
-       A. Modi, the same as live C7: Cloudflare Web Analytics for every visitor, and
-       Google Analytics only after Allow in the suite footer's banner. The policy is
-       C7's, unchanged; public/_headers lists what it allows. -->
+  <!-- C7's policy, unchanged. Scripts, styles and fonts from the page's own origin
+       only, images also as data: URIs, plus the analytics decided by A. Modi, the same
+       as live C7: Cloudflare Web Analytics for every visitor, and Google Analytics only
+       after Allow in the suite footer's banner. public/_headers lists every host. -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com/beacon.min.js https://static.cloudflareinsights.com/beacon.min.js/ https://www.googletagmanager.com; style-src 'self'; font-src 'self'; img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com; connect-src https://benchtools.ligant.ai/cdn-cgi/rum https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://www.google.com https://*.g.doubleclick.net; object-src 'none'; base-uri 'self'; form-action 'none'">
   <!-- frame-ancestors cannot be set from a meta element; it is set in the response header, public/_headers. -->
   <link rel="icon" id="favicon" href="data:,">
   <meta name="referrer" content="no-referrer">
   <title>Ligant · Master Mix</title>
-  <!-- No description, canonical or og:url: the public slug is URS open item 9. -->
+  <!-- No canonical or og:url: the public slug is URS open item 9. No description:
+       no product text has been given for C5. -->
   <meta name="color-scheme" content="light">
   <meta name="theme-color" content="#FAF7F2">
 
