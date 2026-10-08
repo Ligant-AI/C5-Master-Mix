@@ -1,0 +1,14 @@
+# Citation metadata, read by GitHub ("Cite this repository") and by Zenodo.
+# At each release, set version and date-released; add the DOI once archived.
+# No url: the public slug is URS open item 9, not yet decided.
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+type: software
+title: Master Mix
+authors:
+  - family-names: Modi
+    given-names: A.B.
+    affiliation: Ligant AI Incorporated
+version: v0.1.0
+license: Apache-2.0
+repository-code: https://github.com/Ligant-AI/C5-Master-Mix

@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.DS_Store
+.wrangler/
+test-results/
+playwright-report/
+.abm/
