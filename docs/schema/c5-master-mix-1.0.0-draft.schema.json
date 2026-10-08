@@ -1,0 +1,901 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ligant-benchtools-c5-master-mix/1.0.0-draft",
+  "title": "Ligant Bench Tools, Master Mix (C5): structured result object",
+  "description": "C5-OUT-03, C5-ST-04, C5-UN-07. A tool-specific, versioned object; not a shared format (docs/out-03-escalation.md). Every declaration as typed, with an explicit state; every unrounded value with its unit; every flag with component-level scope.",
+  "$defs": {
+    "normalised": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "number"
+            },
+            "unit": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "value",
+            "unit"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "typedQuantity": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "state": {
+              "const": "entered"
+            },
+            "value": {
+              "type": "string"
+            },
+            "unit": {
+              "type": "string"
+            },
+            "normalised": {
+              "$ref": "#/$defs/normalised"
+            }
+          },
+          "required": [
+            "state",
+            "value",
+            "unit",
+            "normalised"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "state": {
+              "const": "blank"
+            },
+            "unit": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "unit"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "recordable": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/typedQuantity"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "state": {
+              "const": "not-recorded"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "quantity": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "unit"
+      ],
+      "additionalProperties": false
+    },
+    "withheld": {
+      "type": "object",
+      "properties": {
+        "withheld": {
+          "const": true
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "withheld",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "selection": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "state": {
+              "const": "selected"
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "state": {
+              "const": "unselected"
+            }
+          },
+          "required": [
+            "state"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "component": {
+      "type": "object",
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "label": {
+          "type": "string"
+        },
+        "intended": {
+          "$ref": "#/$defs/typedQuantity"
+        },
+        "stock": {
+          "$ref": "#/$defs/typedQuantity"
+        },
+        "establishedVolume": {
+          "$ref": "#/$defs/recordable"
+        },
+        "establishedCells": {
+          "$ref": "#/$defs/recordable"
+        },
+        "provenance": {
+          "$ref": "#/$defs/selection"
+        },
+        "transport": {
+          "const": "entered"
+        },
+        "declaredByPanelControl": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "index",
+        "label",
+        "intended",
+        "stock",
+        "establishedVolume",
+        "establishedCells",
+        "provenance",
+        "transport",
+        "declaredByPanelControl"
+      ],
+      "additionalProperties": false
+    },
+    "declarations": {
+      "type": "object",
+      "properties": {
+        "dispensed": {
+          "$ref": "#/$defs/typedQuantity"
+        },
+        "residual": {
+          "$ref": "#/$defs/typedQuantity"
+        },
+        "assayCells": {
+          "$ref": "#/$defs/typedQuantity"
+        },
+        "samples": {
+          "$ref": "#/$defs/typedQuantity"
+        },
+        "overage": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "form": {
+                  "enum": [
+                    "percentage",
+                    "additional-tests",
+                    "dead-volume"
+                  ]
+                },
+                "state": {
+                  "const": "entered"
+                },
+                "value": {
+                  "type": "string"
+                },
+                "unit": {
+                  "type": "string"
+                },
+                "normalised": {
+                  "$ref": "#/$defs/normalised"
+                }
+              },
+              "required": [
+                "form",
+                "state",
+                "value",
+                "unit",
+                "normalised"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "form": {
+                  "enum": [
+                    "percentage",
+                    "additional-tests",
+                    "dead-volume",
+                    null
+                  ]
+                },
+                "state": {
+                  "const": "blank"
+                },
+                "unit": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "form",
+                "state",
+                "unit"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "basis": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "state": {
+                  "const": "selected"
+                },
+                "value": {
+                  "enum": [
+                    "preserve-concentration",
+                    "preserve-amount"
+                  ]
+                }
+              },
+              "required": [
+                "state",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "state": {
+                  "const": "unselected"
+                }
+              },
+              "required": [
+                "state"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "diluent": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "state": {
+                  "const": "entered"
+                },
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "state",
+                "text"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "state": {
+                  "enum": [
+                    "not-recorded",
+                    "blank"
+                  ]
+                }
+              },
+              "required": [
+                "state"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "minTransfer": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "state": {
+                  "const": "entered"
+                },
+                "value": {
+                  "type": "string"
+                },
+                "unit": {
+                  "type": "string"
+                },
+                "normalised": {
+                  "$ref": "#/$defs/normalised"
+                },
+                "source": {
+                  "enum": [
+                    "defaulted",
+                    "entered"
+                  ]
+                }
+              },
+              "required": [
+                "state",
+                "value",
+                "unit",
+                "normalised",
+                "source"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "state": {
+                  "const": "blank"
+                },
+                "unit": {
+                  "type": "string"
+                },
+                "source": {
+                  "enum": [
+                    "defaulted",
+                    "entered"
+                  ]
+                }
+              },
+              "required": [
+                "state",
+                "unit",
+                "source"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "capacity": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/typedQuantity"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "state": {
+                  "const": "not-declared"
+                }
+              },
+              "required": [
+                "state"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "components": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/component"
+          }
+        }
+      },
+      "required": [
+        "dispensed",
+        "residual",
+        "assayCells",
+        "samples",
+        "overage",
+        "basis",
+        "diluent",
+        "minTransfer",
+        "capacity",
+        "components"
+      ],
+      "additionalProperties": false
+    },
+    "valueComponent": {
+      "type": "object",
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "form": {
+          "enum": [
+            "amount",
+            "concentration",
+            "stock-volume"
+          ]
+        },
+        "basisApplied": {
+          "enum": [
+            "preserve-concentration",
+            "preserve-amount",
+            "not-required",
+            "not-applied"
+          ]
+        },
+        "stockVolumePerTest": {
+          "$ref": "#/$defs/quantity"
+        },
+        "scaleFactor": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number"
+                },
+                "unit": {
+                  "const": "1"
+                },
+                "exactlyOne": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "value",
+                "unit",
+                "exactlyOne"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "volumePerTest": {
+          "$ref": "#/$defs/quantity"
+        },
+        "volumeInCocktail": {
+          "$ref": "#/$defs/quantity"
+        },
+        "concentrationInAssay": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number"
+                },
+                "unit": {
+                  "type": "string"
+                },
+                "stockUnit": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "value",
+                "unit",
+                "stockUnit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "$ref": "#/$defs/withheld"
+            }
+          ]
+        },
+        "ratio": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "number"
+                },
+                "unit": {
+                  "const": "1"
+                }
+              },
+              "required": [
+                "value",
+                "unit"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "$ref": "#/$defs/withheld"
+            }
+          ]
+        }
+      },
+      "required": [
+        "index",
+        "form",
+        "basisApplied",
+        "stockVolumePerTest",
+        "scaleFactor",
+        "volumePerTest",
+        "volumeInCocktail",
+        "concentrationInAssay",
+        "ratio"
+      ],
+      "additionalProperties": false
+    },
+    "values": {
+      "type": "object",
+      "properties": {
+        "svAssay": {
+          "$ref": "#/$defs/quantity"
+        },
+        "nEff": {
+          "$ref": "#/$defs/quantity"
+        },
+        "overageFraction": {
+          "$ref": "#/$defs/quantity"
+        },
+        "diluentPerTest": {
+          "$ref": "#/$defs/quantity"
+        },
+        "componentsFillDispensedVolume": {
+          "type": "boolean"
+        },
+        "diluentTotal": {
+          "$ref": "#/$defs/quantity"
+        },
+        "totalCocktail": {
+          "$ref": "#/$defs/quantity"
+        },
+        "antibodyFraction": {
+          "$ref": "#/$defs/quantity"
+        },
+        "fl08Unevaluated": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "components": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/valueComponent"
+          }
+        }
+      },
+      "required": [
+        "svAssay",
+        "nEff",
+        "overageFraction",
+        "diluentPerTest",
+        "componentsFillDispensedVolume",
+        "diluentTotal",
+        "totalCocktail",
+        "antibodyFraction",
+        "fl08Unevaluated",
+        "components"
+      ],
+      "additionalProperties": false
+    },
+    "flag": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "enum": [
+            "C5-FL-01",
+            "C5-FL-02",
+            "C5-FL-03",
+            "C5-FL-04",
+            "C5-FL-05",
+            "C5-FL-07",
+            "C5-FL-08",
+            "C5-FL-09",
+            "C5-FL-11",
+            "C5-FL-12"
+          ]
+        },
+        "components": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "volumes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "nL": {
+                "type": "integer"
+              },
+              "components": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
+            "required": [
+              "nL",
+              "components"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "unevaluated": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "amountPerCell": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "component": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "factor": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "component",
+                  "factor"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "component": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "withheld": {
+                    "const": true
+                  },
+                  "reason": {
+                    "enum": [
+                      "assay-cells-zero",
+                      "established-cells-zero"
+                    ]
+                  }
+                },
+                "required": [
+                  "component",
+                  "withheld",
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "code",
+        "components"
+      ],
+      "additionalProperties": false
+    },
+    "rejection": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "component": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "quantity": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ]
+    },
+    "incomplete": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string"
+        },
+        "component": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reason": {
+          "enum": [
+            "blank",
+            "no-unit",
+            "invalid",
+            "unrepresentable",
+            "not-selected"
+          ]
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "field",
+        "reason",
+        "message"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "properties": {
+    "schema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "const": "ligant-benchtools-c5-master-mix"
+        },
+        "version": {
+          "const": "1.0.0-draft"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "additionalProperties": false
+    },
+    "tool": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "const": "C5"
+        },
+        "name": {
+          "const": "Master Mix"
+        },
+        "product": {
+          "const": "Ligant Bench Tools"
+        },
+        "publisher": {
+          "const": "Ligant"
+        },
+        "engineVersion": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "product",
+        "publisher",
+        "engineVersion"
+      ],
+      "additionalProperties": false
+    },
+    "status": {
+      "enum": [
+        "result",
+        "incomplete",
+        "rejected"
+      ]
+    },
+    "declarations": {
+      "$ref": "#/$defs/declarations"
+    },
+    "basisRequired": {
+      "type": "boolean"
+    },
+    "values": {
+      "$ref": "#/$defs/values"
+    },
+    "flags": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/flag"
+      }
+    },
+    "rejections": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/rejection"
+      }
+    },
+    "incomplete": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/incomplete"
+      }
+    }
+  },
+  "required": [
+    "schema",
+    "tool",
+    "status",
+    "declarations"
+  ],
+  "additionalProperties": false,
+  "oneOf": [
+    {
+      "properties": {
+        "status": {
+          "const": "result"
+        }
+      },
+      "required": [
+        "basisRequired",
+        "values",
+        "flags"
+      ]
+    },
+    {
+      "properties": {
+        "status": {
+          "enum": [
+            "incomplete",
+            "rejected"
+          ]
+        }
+      },
+      "required": [
+        "rejections",
+        "incomplete"
+      ]
+    }
+  ]
+}
