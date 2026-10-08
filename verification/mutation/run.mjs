@@ -44,6 +44,19 @@ const MUTATIONS = [
   ['Q4: zero established staining volume not held', 'src/engine/validate.js', 'c.estVolume.sign <= 0', 'c.estVolume.sign < 0'],
   ['rejections not in table order', 'src/engine/validate.js', "  const status = rejections.length ?", "  rejections.reverse();\n  const status = rejections.length ?"],
   ['C5-CP-07: basis requirement decided on doubles', 'src/engine/validate.js', 'basisRequired = recorded.some((c) => !equalUnderRule(svAssay, c.estVolume));', 'basisRequired = recorded.some((c) => svAssay.value !== c.estVolume.value);'],
+  // Task 6b
+  ['diluent per test not the literal 0 when the components fill the dispense', 'src/engine/determine.js', 'const diluentPerTest = fills ? 0 : D - sumV;', 'const diluentPerTest = D - sumV;'],
+  ['diluent in the cocktail not the literal 0 when the components fill the dispense', 'src/engine/determine.js', 'const diluentTotal = fills ? 0 : totalCocktail - sumCocktail;', 'const diluentTotal = totalCocktail - sumCocktail;'],
+  ['C5-HI-06 not applied by determine', 'src/engine/determine.js', 'if (hi06) return nonResult', 'if (false) return nonResult'],
+  ['preserve-amount ratio computed when the volumes are equal', 'src/engine/determine.js', '{ value: equalUnderRule(c.estVolume, svAssay) ? 1 : c.estVolume.value / SV }', '{ value: c.estVolume.value / SV }'],
+  ['overage fraction as (N_eff - n) / n', 'src/engine/determine.js', 'overageFraction = p.overage.value / 100;', 'overageFraction = (nEff - n) / n;'],
+  ['C5-FL-08 unevaluated components dropped', 'src/engine/flags.js', "raise('C5-FL-08', recorded.map((c) => c.index), { volumes, unevaluated });", "raise('C5-FL-08', recorded.map((c) => c.index), { volumes, unevaluated: [] });"],
+  ['C5-FL-11 factor ignores the scale factor', 'src/engine/flags.js', "c.basisApplied === 'preserve-concentration' ? c.scaleFactor.value * cellRatio : cellRatio", 'cellRatio'],
+  ['C5-FL-05 raised for a volume equal to the minimum', 'src/engine/flags.js', 'canonicalOfDouble(c.volumeInCocktail, KIND.VOLUME) < min', 'canonicalOfDouble(c.volumeInCocktail, KIND.VOLUME) <= min'],
+  ['C5-FL-07 raised for a total equal to the capacity', 'src/engine/flags.js', 'canonicalOfDouble(ctx.totalCocktail, KIND.VOLUME) > canonical(ctx.capacity)', 'canonicalOfDouble(ctx.totalCocktail, KIND.VOLUME) >= canonical(ctx.capacity)'],
+  ['C5-FL-11 factor not withheld at zero assay cells', 'src/engine/flags.js', "if (ctx.cells.sign === 0) return { component: c.index, withheld: true, reason: 'assay-cells-zero' };", ''],
+  ['displayed total from the unrounded total', 'src/engine/format.js', 'total_uL: Dec.toString(total)', 'total_uL: sig(v.totalCocktail_uL, 3)'],
+  ['pipetting list: components before the diluent', 'src/engine/format.js', "const steps = [{ step: 1, what: 'diluent', volume_uL: volume(v.diluentTotal_uL) }];", "const steps = [];"],
   ['blank residual treated as zero', 'src/engine/validate.js', 'const R = read(inputs.residual, KIND.VOLUME);', "const R = read(inputs.residual && inputs.residual.value === '' ? { ...inputs.residual, value: '0' } : inputs.residual, KIND.VOLUME);"],
 ];
 
