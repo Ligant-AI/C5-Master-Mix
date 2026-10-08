@@ -44,3 +44,35 @@ export async function fill(page, input) {
     });
   }, input);
 }
+
+// The same, typed as a user types: Playwright's fill (keystroke input events),
+// selectOption and check on each control in turn. Slower; used where the check
+// is about typing itself (acceptance 20, the network sentinel).
+export async function typeInto(page, input) {
+  const p = (name) => page.locator(`#panel-fields [data-field="${name}"]`);
+  const q = async (name, f) => { await p(`${name}.value`).fill(f.value); await p(`${name}.unit`).selectOption(f.unit || ''); };
+  await q('dispensed', input.dispensed);
+  await q('residual', input.residual);
+  await q('assayCells', input.assayCells);
+  await p('samples').fill(input.samples);
+  await p('overage.form').selectOption(input.overage.form || '');
+  await p('overage.value').fill(input.overage.value || '');
+  if (input.overage.form === 'dead-volume') await p('overage.unit').selectOption(input.overage.unit);
+  await p('basis').selectOption(input.basis || '');
+  if (input.diluent.notRecorded) await p('diluent.notRecorded').check();
+  else await p('diluent.text').fill(input.diluent.text || '');
+  if (!(input.minTransfer.defaulted && input.minTransfer.value === '2' && input.minTransfer.unit === 'µL')) await q('minTransfer', input.minTransfer);
+  if (input.capacity && input.capacity.value) await q('capacity', input.capacity);
+  while (await page.locator('#components-body tr').count() < input.components.length) await page.locator('#add-component').click();
+  for (const [i, c] of input.components.entries()) {
+    const f = (name) => page.locator(`#components-body tr[data-row="${i + 1}"] [data-field="${name}"]`);
+    await f('label').fill(c.label);
+    await f('intended.value').fill(c.intended.value); await f('intended.unit').selectOption(c.intended.unit);
+    await f('stock.value').fill(c.stock.value); await f('stock.unit').selectOption(c.stock.unit);
+    for (const k of ['establishedVolume', 'establishedCells']) {
+      if (c[k].notRecorded) await f(`${k}.unit`).selectOption('not-recorded');
+      else { await f(`${k}.value`).fill(c[k].value); await f(`${k}.unit`).selectOption(c[k].unit); }
+    }
+    await f('provenance').selectOption(c.provenance);
+  }
+}
