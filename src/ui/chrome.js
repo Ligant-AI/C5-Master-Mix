@@ -6,8 +6,8 @@
 //
 // From C7's src/ui/chrome.js. Changes: escapeHtml is taken from the frame
 // package (C7 took it from its own page-content.js, which is C7's tool logic);
-// the path and the citation address depend on the slug, which is URS open item 9
-// and not yet decided, so neither is stated; C7's renderDisclaimer is left out,
+// the path and the citation address come from the slug (URS open item 9,
+// decided by A.B. on 8 October 2026); C7's renderDisclaimer is left out,
 // because it composes C7 engine text.
 import { renderHeader as suiteHeader, renderFooter as suiteFooter, markSvg, escapeHtml as esc } from '@ligant/bench-chrome';
 import { CONFIG } from '../config.js';

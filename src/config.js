@@ -11,9 +11,9 @@ export const CONFIG = Object.freeze({
   publisher: 'Ligant',
   legalEntity: 'Ligant AI Incorporated',
   version: ENGINE_VERSION, // moves with the engine
-  // URS open item 9: the public slug is not decided, so no address is stated and
-  // nothing here is citable until it is.
-  slug: null,
+  // URS open item 9, decided by A.B., 8 October 2026: the tool's address is
+  // https://benchtools.ligant.ai/master-mix/
+  slug: 'master-mix',
   publicBase: 'https://benchtools.ligant.ai/',
   repositoryUrl: 'https://github.com/Ligant-AI/C5-Master-Mix',
   repositoryLabel: 'github.com/Ligant-AI/C5-Master-Mix',

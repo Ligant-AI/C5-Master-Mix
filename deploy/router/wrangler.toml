@@ -1,0 +1,13 @@
+name = "ligant-master-mix-router"
+main = "src/index.js"
+compatibility_date = "2026-10-08"
+
+# Path-based routing on the live zone, as for the sibling tools: the
+# Master Mix tool is its own Pages project (ligant-master-mix), and this
+# Worker intercepts only benchtools.ligant.ai/master-mix; everything else on
+# the domain falls through untouched. Both patterns are needed because a route
+# pattern's "*" does not imply the exact, slash-less path.
+routes = [
+  { pattern = "benchtools.ligant.ai/master-mix", zone_name = "ligant.ai" },
+  { pattern = "benchtools.ligant.ai/master-mix/*", zone_name = "ligant.ai" },
+]
