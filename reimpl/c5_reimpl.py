@@ -214,9 +214,6 @@ def determine(inp):
     if MT.ok and MT.exact <= 0: rej("C5-HI-10")
     if D.ok and D.exact <= 0: rej("C5-HI-11")
     for p in parsed:
-        if p["Q"].ok and p["Q"].kind == "conc" and p["SV"].state == "not-recorded":
-            rej("PENDING-Q1", p["i"])
-    for p in parsed:
         if p["Q"].ok and p["Q"].kind == "volume" and p["S"].state == "blank":
             rej("PENDING-Q2", p["i"])
     for p in parsed:
@@ -267,7 +264,13 @@ def determine(inp):
         if Q.kind == "amount":
             frm, a = "amount", Q.double / S.double
         elif Q.kind == "conc":
-            frm, a = "concentration", (Q.double * SV.double) / S.double
+            frm = "concentration"
+            if SV.state == "ok":
+                a = (Q.double * SV.double) / S.double
+            else:
+                # NADIRA ruling Q1 (8 Oct 2026): carry the entered concentration
+                # into the assay, under either basis: a = (q x SV_assay) / c.
+                a = (Q.double * sv_assay) / S.double
         else:
             frm, a = "stock-volume", Q.double
         recorded = SV.state == "ok"

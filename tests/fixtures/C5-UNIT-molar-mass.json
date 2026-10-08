@@ -1,6 +1,6 @@
 {
- "id": "PENDING-Q1",
- "title": "Concentration quantity, established volume not recorded",
+ "id": "C5-UNIT-molar-mass",
+ "title": "Molar quantity against a mass stock",
  "standard": "",
  "assumptions": {
   "exactTiesAtDisplayedPrecision": false,
@@ -43,17 +43,18 @@
   },
   "components": [
    {
-    "label": "A",
+    "label": "Dye",
     "intended": {
-     "value": "5",
-     "unit": "µg/mL"
+     "value": "10",
+     "unit": "pmol"
     },
     "stock": {
-     "value": "0.5",
+     "value": "1",
      "unit": "mg/mL"
     },
     "establishedVolume": {
-     "notRecorded": true
+     "value": "100",
+     "unit": "µL"
     },
     "establishedCells": {
      "value": "1000000",
@@ -68,7 +69,7 @@
   "status": "rejected",
   "rejections": [
    {
-    "code": "PENDING-Q1",
+    "code": "C5-HI-05",
     "component": 1
    }
   ]

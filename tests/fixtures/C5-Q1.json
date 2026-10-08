@@ -1,0 +1,85 @@
+{
+ "id": "C5-Q1",
+ "title": "Concentration quantity, established volume not recorded (NADIRA ruling Q1)",
+ "standard": "NADIRA ruling Q1: v = q x SV_assay / c under either basis; FL-02; ratio withheld",
+ "assumptions": {
+  "exactTiesAtDisplayedPrecision": false,
+  "powerOfTwoRatios": false,
+  "symmetricInputs": false,
+  "note": "5 ug/mL carried into the 100 uL assay: (0.005 ug/uL x 100 uL) / 0.5 ug/uL = 1 uL per test, exact in binary. Basis not applied; FL-02 raised; ratio withheld."
+ },
+ "ui": false,
+ "input": {
+  "dispensed": {
+   "value": "50",
+   "unit": "µL"
+  },
+  "residual": {
+   "value": "50",
+   "unit": "µL"
+  },
+  "assayCells": {
+   "value": "1000000",
+   "unit": "cells"
+  },
+  "samples": "96",
+  "overage": {
+   "form": "additional-tests",
+   "value": "4",
+   "unit": ""
+  },
+  "basis": "",
+  "diluent": {
+   "notRecorded": false,
+   "text": "PBS, 2% FBS"
+  },
+  "minTransfer": {
+   "value": "2",
+   "unit": "µL",
+   "defaulted": false
+  },
+  "capacity": {
+   "value": "",
+   "unit": ""
+  },
+  "components": [
+   {
+    "label": "A",
+    "intended": {
+     "value": "5",
+     "unit": "µg/mL"
+    },
+    "stock": {
+     "value": "0.5",
+     "unit": "mg/mL"
+    },
+    "establishedVolume": {
+     "notRecorded": true
+    },
+    "establishedCells": {
+     "value": "1000000",
+     "unit": "cells"
+    },
+    "provenance": "titrated-here",
+    "declaredByPanelControl": false
+   }
+  ]
+ },
+ "expect": {
+  "status": "result",
+  "flagCodes": {
+   "C5-FL-02": [
+    1
+   ]
+  },
+  "values": {
+   "components[0].volumePerTest_uL": 1,
+   "components[0].basisApplied": "not-applied",
+   "components[0].ratio": {
+    "withheld": true,
+    "reason": "C5-FL-02"
+   },
+   "components[0].form": "concentration"
+  }
+ }
+}
