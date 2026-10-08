@@ -226,9 +226,12 @@ export function validate(inputs) {
       reject(PENDING.Q1, `${c.name}: not yet supported, pending ruling on question Q1. The intended quantity, ${typed(c.intended)}, is a concentration, and the staining volume it was established at is not recorded; what is computed for this case has not been decided. Nothing is computed for it.`, { component: { row: c.row, label: c.label } });
     }
   }
+  // Q2 covers a volume of stock per test with NO stock concentration entered
+  // (Task 5 review, ruling 5). With one entered, the component is computed:
+  // its concentration in the assay is c_stock × v ÷ SV_assay.
   for (const c of components) {
-    if (c.intended.status === 'ok' && c.intended.kind === KIND.VOLUME) {
-      reject(PENDING.Q2, `${c.name}: not yet supported, pending ruling on question Q2. The intended quantity, ${typed(c.intended)}, is a volume of stock per test; how its concentration in the assay is reported has not been decided. Nothing is computed for it.`, { component: { row: c.row, label: c.label } });
+    if (c.intended.status === 'ok' && c.intended.kind === KIND.VOLUME && c.stock.status === 'blank') {
+      reject(PENDING.Q2, `${c.name}: not yet supported, pending ruling on question Q2. The intended quantity, ${typed(c.intended)}, is a volume of stock per test and no stock concentration is entered; how its concentration in the assay is reported has not been decided. Nothing is computed for it.`, { component: { row: c.row, label: c.label } });
     }
   }
   // Values the URS gives no rejection for, which would make a later value

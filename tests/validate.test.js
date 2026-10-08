@@ -284,14 +284,18 @@ test('Q1: a concentration-type quantity with its established staining volume not
   assert.deepEqual(codes(run((p) => { p.components[0].intended = { value: '5', unit: 'µg/mL' }; })), []);
 });
 
-test('Q2: a quantity given as a volume of stock per test is held, pending the ruling, with or without a stock concentration', () => {
-  for (const stock of [{ value: '', unit: '' }, { value: '0.2', unit: 'mg/mL' }]) {
-    const r = run((p) => { p.components[1].intended = { value: '2', unit: 'µL' }; p.components[1].stock = stock; });
-    const x = only(r, PENDING.Q2);
-    assert.match(x.message, /^Component 2, "CD4 BV421": not yet supported, pending ruling on question Q2\./);
-    assert.match(x.message, /The intended quantity, 2 µL, is a volume of stock per test/);
-    assert.ok(!r.incomplete.some((e) => e.field === 'stock'), 'no stock concentration is demanded for a volume of stock');
-  }
+test('Q2: a volume of stock per test with no stock concentration is held, pending the ruling; with one, it is computed (ruling 5)', () => {
+  let r = run((p) => { p.components[1].intended = { value: '2', unit: 'µL' }; p.components[1].stock = { value: '', unit: '' }; });
+  const x = only(r, PENDING.Q2);
+  assert.match(x.message, /^Component 2, "CD4 BV421": not yet supported, pending ruling on question Q2\./);
+  assert.match(x.message, /The intended quantity, 2 µL, is a volume of stock per test and no stock concentration is entered/);
+  assert.ok(!r.incomplete.some((e) => e.field === 'stock'), 'no stock concentration is demanded for a volume of stock');
+  r = run((p) => { p.components[1].intended = { value: '2', unit: 'µL' }; p.components[1].stock = { value: '0.2', unit: 'mg/mL' }; });
+  assert.equal(r.status, 'ok');
+  assert.deepEqual(r.rejections, []);
+  // The entered stock concentration is still checked (C5-HI-03).
+  r = run((p) => { p.components[1].intended = { value: '2', unit: 'µL' }; p.components[1].stock = { value: '0', unit: 'mg/mL' }; });
+  assert.deepEqual(codes(r), ['C5-HI-03']);
 });
 
 test('Q4 (proposed): values with no stated rule that would make a later value non-finite are held, not computed', () => {
