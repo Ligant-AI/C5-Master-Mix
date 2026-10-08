@@ -3,7 +3,7 @@
 // displayed by format.js, or a declaration as typed. Messages are the engine's.
 import { escapeHtml as esc } from '@ligant/bench-chrome';
 import { sig } from '../engine/numfmt.js';
-import { PRECISION, pipettingList, perTestVolumes, concentrations, ratios } from '../engine/format.js';
+import { PRECISION, pipettingList, perTestVolumes, concentrations, ratios, effectiveTests } from '../engine/format.js';
 import { flagTexts, flagNotebookLines, FLAG_TITLES } from '../engine/flags.js';
 import { REGISTER, FAILURES, FAILURE_INTRO, STATEMENTS } from '../engine/register.js';
 import { RECORD_SCHEMA } from '../engine/result.js';
@@ -13,7 +13,7 @@ import { codesByComponent } from './visuals.js';
 
 const vol = (x) => sig(x, PRECISION.volumes);
 const rat = (x) => sig(x, PRECISION.ratios);
-const tests = (x) => sig(x, PRECISION.concentrations);
+const tests = (x) => effectiveTests(x);
 const BASIS = { 'preserve-concentration': 'preserve concentration', 'preserve-amount': 'preserve amount per test' };
 const OVERAGE = { percentage: 'percentage of samples', 'additional-tests': 'additional tests', 'dead-volume': 'dead volume' };
 const PROVENANCE = { 'titrated-here': 'titrated in this laboratory', vendor: 'vendor recommendation', 'not-recorded': 'not recorded' };

@@ -7,7 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { determine } from '../src/engine/determine.js';
 import { record } from '../src/engine/result.js';
-import { pipettingList, perTestVolumes, concentrations, ratios, PRECISION } from '../src/engine/format.js';
+import { pipettingList, perTestVolumes, concentrations, ratios, PRECISION, effectiveTests } from '../src/engine/format.js';
 import { sig, Dec } from '../src/engine/numfmt.js';
 import { quantity } from '../src/engine/units.js';
 import { TOLERANCES, relativeDifference } from '../src/engine/tolerances.js';
@@ -362,4 +362,14 @@ test('ratios and fractions display at 3 significant figures, PROVISIONAL (ruling
   assert.equal(r.overageFraction, '0.0417');
   assert.equal(r.antibodyFraction, '0.0500');
   assert.deepEqual(r.components.map((c) => [c.ratio, c.scaleFactor]), [['1.00', '1.00'], ['1.00', '2.00'], [{ withheld: true, reason: 'C5-FL-02' }, null]]);
+});
+
+test('the effective number of tests displays to at most 6 significant figures with no trailing zeros (Task 11, item 3)', () => {
+  assert.equal(effectiveTests(96), '96');
+  assert.equal(effectiveTests(100), '100');
+  assert.equal(effectiveTests(96 * (1 + 10 / 100)), '105.6'); // the double 105.60000000000001
+  assert.equal(effectiveTests(98.5), '98.5');
+  assert.equal(effectiveTests(1000 / 3), '333.333');
+  assert.equal(effectiveTests(100.0000004), '100');
+  assert.equal(PRECISION.effectiveTests, 6);
 });
