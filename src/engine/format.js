@@ -4,8 +4,13 @@
 // zero on its exact binary value (numfmt.js), and the displayed total is the
 // exact decimal sum of the displayed pipetted volumes.
 import { sig, Dec } from './numfmt.js';
+import { unitInfo } from './units.js';
 
-export const PRECISION = Object.freeze({ volumes: 3, concentrations: 6 });
+// Significant figures. Ratios and fractions (concentration ratio, scale
+// factor, overage fraction, antibody fraction, flag factors): 3, PROVISIONAL,
+// pending NADIRA under open item 8 (Task 6b review, ruling 3).
+export const PRECISION = Object.freeze({ volumes: 3, concentrations: 6, ratios: 3 });
+export const PRECISION_STATUS = Object.freeze({ volumes: 'disclosed', concentrations: 'proposed, open item 8', ratios: 'PROVISIONAL, open item 8' });
 
 const volume = (x) => sig(x, PRECISION.volumes);
 
@@ -33,9 +38,36 @@ export function perTestVolumes(result) {
   });
 }
 
-/** Concentrations in the assay at 6 significant figures (C5-UN-05), in the stock's base unit. */
-export function concentrations(result) {
-  return result.values.components.map((c) => (c.concentrationInAssay.withheld
-    ? { component: c.index, withheld: true, reason: c.concentrationInAssay.reason }
-    : { component: c.index, value: sig(c.concentrationInAssay.value, PRECISION.concentrations), unit: c.concentrationInAssay.unit }));
+/**
+ * Concentrations in the assay at 6 significant figures (C5-UN-05), each in the
+ * stock unit the user selected for that component (Task 6b review, ruling 2).
+ * `stockUnits` lists those unit identifiers in component order; the result
+ * carries the base unit only, until Task 7's structured result carries the
+ * declarations. The conversion from the base unit is an exact power-of-ten
+ * shift of the double's exact binary value, so the value is rounded once.
+ */
+export function concentrations(result, stockUnits) {
+  return result.values.components.map((c, i) => {
+    if (c.concentrationInAssay.withheld) return { component: c.index, withheld: true, reason: c.concentrationInAssay.reason };
+    const u = unitInfo(stockUnits[i]);
+    if (!u || u.base !== c.concentrationInAssay.unit) throw new Error(`format: "${stockUnits[i]}" is not a unit of ${c.concentrationInAssay.unit}`);
+    const exact = Dec.shift(Dec.fromNumberExact(c.concentrationInAssay.value), -u.exp10);
+    return { component: c.index, value: Dec.toString(Dec.roundSig(exact, PRECISION.concentrations)), unit: u.symbol };
+  });
+}
+
+const ratio = (x) => sig(x, PRECISION.ratios);
+
+/** Ratios and fractions at PRECISION.ratios significant figures (PROVISIONAL). Withheld values stay withheld. */
+export function ratios(result) {
+  const v = result.values;
+  return Object.freeze({
+    overageFraction: ratio(v.overageFraction),
+    antibodyFraction: ratio(v.antibodyFraction),
+    components: v.components.map((c) => ({
+      component: c.index,
+      ratio: c.ratio.withheld ? { withheld: true, reason: c.ratio.reason } : ratio(c.ratio.value),
+      scaleFactor: c.scaleFactor ? ratio(c.scaleFactor.value) : null,
+    })),
+  });
 }

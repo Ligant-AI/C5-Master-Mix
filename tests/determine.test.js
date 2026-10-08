@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { determine } from '../src/engine/determine.js';
-import { pipettingList, perTestVolumes } from '../src/engine/format.js';
+import { pipettingList, perTestVolumes, concentrations, ratios, PRECISION } from '../src/engine/format.js';
 import { sig, Dec } from '../src/engine/numfmt.js';
 import { quantity } from '../src/engine/units.js';
 import { TOLERANCES, relativeDifference } from '../src/engine/tolerances.js';
@@ -368,4 +368,25 @@ test('finite volumes per test whose sum is beyond a double is incomplete with it
   assert.equal(r.status, 'incomplete');
   assert.equal(r.incomplete[0].reason, 'unrepresentable');
   assert.match(r.incomplete[0].message, /^The total volume of the components per test is outside the range/);
+});
+
+test('concentrations display in each component\'s own stock unit, at 6 significant figures, rounded once (ruling 2)', () => {
+  const r = determine(EXAMPLE_INPUT);
+  assert.deepEqual(concentrations(r, ['mg/mL', 'µg/mL', 'g/L']), [
+    { component: 1, value: '0.00500000', unit: 'mg/mL' },
+    { component: 2, value: '5.00000', unit: 'µg/mL' },
+    { component: 3, value: '0.00100000', unit: 'g/L' },
+  ]);
+  // The shift is exact: 1/3 µg/µL shown in ng/mL is the double's own digits, moved.
+  const third = { values: { components: [{ index: 1, concentrationInAssay: { value: 1 / 3, unit: 'µg/µL' } }] } };
+  assert.deepEqual(concentrations(third, ['ng/mL']), [{ component: 1, value: '333333', unit: 'ng/mL' }]);
+  assert.throws(() => concentrations(r, ['µM', 'mg/mL', 'mg/mL']), /not a unit of µg\/µL/);
+});
+
+test('ratios and fractions display at 3 significant figures, PROVISIONAL (ruling 3); a withheld ratio stays withheld', () => {
+  assert.equal(PRECISION.ratios, 3);
+  const r = ratios(determine(EXAMPLE_INPUT));
+  assert.equal(r.overageFraction, '0.0417');
+  assert.equal(r.antibodyFraction, '0.0500');
+  assert.deepEqual(r.components.map((c) => [c.ratio, c.scaleFactor]), [['1.00', '1.00'], ['1.00', '2.00'], [{ withheld: true, reason: 'C5-FL-02' }, null]]);
 });
