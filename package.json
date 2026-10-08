@@ -14,7 +14,9 @@
     "build:layout": "vite build --mode layout",
     "measure:layout": "node verification/layout/measure.mjs --page",
     "test:reimpl": "node --test tests/reimpl.acceptance.mjs",
-    "measure:mock": "node verification/layout/measure.mjs"
+    "measure:mock": "node verification/layout/measure.mjs",
+    "check:form": "node verification/headless/form.mjs",
+    "check:outputs": "node verification/headless/outputs.mjs"
   },
   "devDependencies": {
     "playwright": "1.63.0",

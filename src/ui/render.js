@@ -115,7 +115,7 @@ export function resultTable(rec) {
   return '<table class="result-table"><thead><tr><th>Component</th><th class="num">Volume per test (µL)</th><th class="num">Volume in cocktail (µL)</th><th>Concentration in the assay</th><th>Concentration in the assay ÷ concentration established at</th></tr></thead>'
     + `<tbody>${rows}<tr data-key-row="diluent"><td>Diluent</td><td class="num" data-key="diluent-per-test">${esc(perTest.diluent_uL)}</td><td class="num" data-key="diluent-total">${esc(list.steps[0].volume_uL)}</td><td></td><td></td></tr></tbody>`
     + `<tfoot><tr><td>Total cocktail</td><td></td><td class="num" data-key="displayed-total">${esc(list.total_uL)}</td><td colspan="2" class="hint">The total is the sum of the volumes shown above it.</td></tr></tfoot></table>`
-    + `<p class="hint">Effective number of tests: <span class="num" data-key="n-eff">${esc(tests(rec.values.nEff.value))}</span>. Overage made ÷ samples (overage fraction) = <span class="num" data-key="overage-fraction">${esc(rats.overageFraction)}</span>. Total component volume ÷ total cocktail volume (antibody fraction) = <span class="num">${esc(rats.antibodyFraction)}</span>.</p>`;
+    + `<p class="hint">Effective number of tests: <span class="num" data-key="n-eff">${esc(tests(rec.values.nEff.value))}</span>. Overage made ÷ samples (overage fraction) = <span class="num" data-key="overage-fraction">${esc(rats.overageFraction)}</span>. Total component volume ÷ total cocktail volume (antibody fraction) = <span class="num" data-key="antibody-fraction">${esc(rats.antibodyFraction)}</span>.</p>`;
 }
 
 export function pipettingHtml(rec) {
