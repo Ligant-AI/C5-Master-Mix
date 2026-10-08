@@ -292,14 +292,7 @@ table.components td.transport { font-size: 11.5px; color: var(--text-muted); }
 .flag-names-line { font-size: 12px; line-height: 1.5; margin-bottom: 4px; color: var(--text-secondary); }
 .flag-names-line .code { font-family: var(--mono); font-weight: 600; color: var(--text-primary); margin-right: 7px; }
 
-.visuals svg { display: block; width: 100%; height: auto; margin-bottom: 14px; font-family: var(--font); }
-.visuals svg text { font-size: 11px; fill: var(--text-secondary); }
-.visuals svg text.num { font-family: var(--mono); }
-.visuals .seg-a { fill: var(--brand-teal-pale); stroke: var(--text-secondary); stroke-width: 1; }
-.visuals .seg-b { fill: var(--surface-inset); stroke: var(--text-secondary); stroke-width: 1; }
-.visuals .axis { stroke: var(--border-strong); stroke-width: 1; }
-.visuals .unity { stroke: var(--text-primary); stroke-width: 1; }
-.visuals .mark { fill: var(--text-primary); }
+.visuals svg:not(.swatch) { display: block; width: 100%; height: auto; margin-bottom: 14px; font-family: var(--font); }
 
 
 /* The real page. */
@@ -328,16 +321,13 @@ table.components button.remove { padding: 1px 4px; font-size: 12px; line-height:
 .prose p + p { margin-top: 8px; }
 #notebook-text { width: 100%; font-size: 12px; }
 
-/* Visuals (C5-VZ-01 to VZ-10). Colour encodes identity only and never alone:
-   components and diluent are also distinguished by fill pattern and label. */
+/* Visuals (C5-VZ-01 to VZ-10): layout only. Every shape and text element
+   carries its own paint as SVG presentation attributes (src/ui/visuals.js), so
+   the printed bench sheet, where these rules do not apply, draws the same. */
 .visuals .vz { margin-bottom: 16px; }
+.vz-legend .swatch, .bench-sheet .swatch { margin-right: 5px; vertical-align: -1px; }
 .visuals .vz-legend { list-style: none; margin: 4px 0 0; padding: 0; columns: 3; column-gap: 18px; font-size: 11.5px; }
 .visuals .vz-legend li { break-inside: avoid; padding: 1px 0; }
-.visuals .vz-legend .swatch { display: inline-block; width: 10px; height: 10px; border: 1px solid var(--text-secondary); margin-right: 5px; vertical-align: -1px; }
-.visuals .swatch.component { background: var(--brand-teal-pale); }
-.visuals .swatch.diluent { background: var(--surface); }
-.visuals .seg-diluent { stroke: var(--text-secondary); stroke-width: 1; }
-.visuals .withheld-text { fill: var(--text-secondary); font-style: italic; }
 /* VZ-03's axis is pinned within the strip, under the bounded block, so the
    axis labels are in view whenever any row of the strip is (Task 9). */
 .vz03-axis { position: sticky; top: var(--block-h, 0px); z-index: 1; background: var(--surface); }
@@ -354,7 +344,8 @@ table.components button.remove { padding: 1px 4px; font-size: 12px; line-height:
   .bench-sheet th, .bench-sheet td { border-bottom: 1px solid #999; padding: 3pt 4pt; text-align: left; }
   .bench-sheet td.num { text-align: right; font-family: var(--mono); }
   .bench-sheet .flag { margin: 4pt 0; }
-  .bench-sheet svg { width: 100%; height: auto; }
+  .bench-sheet svg:not(.swatch) { width: 100%; height: auto; }
+  .bench-sheet .vz-legend { list-style: none; padding: 0; columns: 3; column-gap: 12pt; font-size: 9pt; }
   .vz03-axis { position: static; }
 }
 .panel-grid .field.span2 { grid-column: span 2; }
