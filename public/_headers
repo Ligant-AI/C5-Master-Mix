@@ -5,7 +5,8 @@
 # Copied from C7 (Ligant-AI/C7-Reconstitution at 9b942e3), policy unchanged; only
 # this comment is rewritten. Scripts, styles and fonts are 'self' only; images are
 # 'self' plus data: URIs (the favicon is one); connect-src has no 'self'. Beyond
-# that, the policy allows only the analytics decided by A. Modi, the same as live C7:
+# that, the policy allows only the analytics decided by A. Modi, the same as live C7,
+# and the newsletter signup:
 #   - Cloudflare Web Analytics, for every visitor: its beacon script from
 #     static.cloudflareinsights.com and its reporting endpoint,
 #     benchtools.ligant.ai/cdn-cgi/rum.
@@ -15,10 +16,14 @@
 #     *.googletagmanager.com; connections to *.google-analytics.com,
 #     *.analytics.google.com, *.googletagmanager.com, www.google.com and
 #     *.g.doubleclick.net.
+#   - The suite footer's newsletter signup (@ligant/bench-chrome 1.3.0): one
+#     connection, benchtools.ligant.ai/api/subscribe, made only when the visitor
+#     submits an email address there. It carries only that address and the
+#     consent; nothing entered into the tool's fields is sent.
 # No other edge-injected script (Rocket Loader, email obfuscation) may be added
 # without changing this policy and the page's disclosure together.
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com/beacon.min.js https://static.cloudflareinsights.com/beacon.min.js/ https://www.googletagmanager.com; style-src 'self'; font-src 'self'; img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com; connect-src https://benchtools.ligant.ai/cdn-cgi/rum https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://www.google.com https://*.g.doubleclick.net; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com/beacon.min.js https://static.cloudflareinsights.com/beacon.min.js/ https://www.googletagmanager.com; style-src 'self'; font-src 'self'; img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com; connect-src https://benchtools.ligant.ai/cdn-cgi/rum https://benchtools.ligant.ai/api/subscribe https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://www.google.com https://*.g.doubleclick.net; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
   Referrer-Policy: no-referrer
   X-Content-Type-Options: nosniff
   Cross-Origin-Opener-Policy: same-origin

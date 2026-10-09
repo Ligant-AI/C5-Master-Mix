@@ -237,7 +237,7 @@ try {
     const rowsOk = r.rows.length === REGISTER.length && r.rows.every((x) => x.length === 4 && x.every((t) => t.trim().length > 0) && statuses.has(x[3].split(' ')[0]));
     const privacyByteEqual = Buffer.from(r.privacy, 'utf8').equals(Buffer.from(PRIVACY_STATEMENT, 'utf8'));
     report('acceptance 21: every register row with value, basis and status; the failure list; the privacy text byte-for-byte', rowsOk && r.failures === FAILURES.length && r.failures === 10 && privacyByteEqual, {
-      registerRows: r.rows.length, everyRowHasValueBasisAndOneStatus: rowsOk, failureClasses: r.failures, privacyByteEqual, privacyText: 'C7\'s statement, pending URS v1.0.1',
+      registerRows: r.rows.length, everyRowHasValueBasisAndOneStatus: rowsOk, failureClasses: r.failures, privacyByteEqual, privacyText: 'the suite footer\'s statement (@ligant/bench-chrome 1.3.0), pending URS v1.0.1',
     });
     await context.close();
   }

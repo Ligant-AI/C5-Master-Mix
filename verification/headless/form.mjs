@@ -259,9 +259,25 @@ try {
     page.on('request', (r) => requests.push({ url: r.url(), method: r.method(), body: r.postData() || '' }));
     await page.goto(base, { waitUntil: 'networkidle' });
     const cookiesBefore = (await context.cookies()).length;
+    // The suite footer's newsletter signup (@ligant/bench-chrome 1.3.0) is the one
+    // field meant to send what is typed. It is not a tool field: the sentinel is
+    // never typed into it, and nothing may reach its endpoint while the tool is used.
+    const isSubscribe = (r) => new URL(r.url).pathname.endsWith('/api/subscribe');
+    const subscribeOnLoad = requests.filter(isSubscribe).length;
+    const signup = await page.evaluate(() => ({
+      forms: document.querySelectorAll('form[data-newsletter]').length,
+      emailFields: document.querySelectorAll('form[data-newsletter] input[name="email"]').length,
+      // The form is shown only on benchtools.ligant.ai; anywhere else (a local
+      // preview) it stays hidden and a link to the signup on ligant.ai is shown.
+      host: location.hostname,
+      formShown: Boolean(document.querySelector('form[data-newsletter]')?.offsetParent),
+      linkElsewhereShown: Boolean(document.querySelector('[data-newsletter-elsewhere]')?.offsetParent),
+    }));
+    const onSuite = signup.host === 'benchtools.ligant.ai';
+    const signupShownRight = onSuite ? signup.formShown && !signup.linkElsewhereShown : !signup.formShown && signup.linkElsewhereShown;
     const SENTINEL = 'C5SENTINEL7f3a';
     await typeInto(page, fixture('C5-FX-01'));
-    const fields = page.locator('[data-field]:is(input[type=text])');
+    const fields = page.locator('[data-field]:is(input[type=text]):not([data-newsletter] *)');
     const n = await fields.count();
     for (let i = 0; i < n; i++) await fields.nth(i).fill(`${SENTINEL}${i}`);
     await page.locator('#add-component').click();
@@ -274,6 +290,10 @@ try {
     const storageOk = store.localStorageKeys.every((k) => k === 'ligant_privacy_choice') && store.sessionStorageLength === 0 && cookiesBefore === 0 && cookies === 0;
     report('storage after a full session (C5-ST-10)', storageOk, { ...store, cookiesBeforeConsent: cookiesBefore, cookiesAfterSession: cookies });
     report('network: no request carries entered data (local, ahead of acceptance 18)', carrying.length === 0, { fieldsTypedWithTheSentinel: n, requests: requests.length, hosts, requestsCarryingTheSentinel: carrying });
+    const subscribe = requests.filter(isSubscribe);
+    report('newsletter signup: present in the footer, and nothing sent to /api/subscribe on load or while the tool is used', signup.forms === 1 && signup.emailFields === 1 && signupShownRight && subscribeOnLoad === 0 && subscribe.length === 0, {
+      ...signup, requestsToSubscribeOnLoad: subscribeOnLoad, requestsToSubscribeAfterSession: subscribe.length,
+    });
     await context.close();
   }
 
