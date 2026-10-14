@@ -7,7 +7,7 @@ const CELLS = symbols(KIND.CELLS);
 const AMOUNT = symbols(KIND.AMOUNT);
 const CONCENTRATION = symbols(KIND.CONCENTRATION);
 export const NOT_RECORDED = 'not-recorded';
-function options(groups, selected = '', placeholder = '—') {
+function options(groups, selected = '', placeholder = 'select') {
     const opt = (v, t) => `<option value="${esc(v)}"${v === selected ? ' selected' : ''}>${esc(t)}</option>`;
     let html = opt('', placeholder);
     for (const [label, items] of groups) {
@@ -26,7 +26,7 @@ export function panelFieldsHtml() {
         field('Assay cell number per test', `<span class="q">${valueInput('assayCells.value')}${unitSelect('assayCells.unit', [['', CELLS]])}</span>`),
         field('Number of samples', `<input type="text" inputmode="numeric" class="num" data-field="samples" aria-label="samples">`),
         field('Overage', `<span class="q"><select data-field="overage.form" aria-label="overage form">${options([['', [['percentage', 'percentage of samples'], ['additional-tests', 'additional tests'], ['dead-volume', 'dead volume']]]], '', 'form')}</select>${valueInput('overage.value')}${unitSelect('overage.unit', [['', VOLUME]])}</span>`, 'span2'),
-        field('Transfer basis <span class="optional" id="basis-required"></span>', `<select data-field="basis" aria-label="transfer basis">${options([['', [['preserve-concentration', 'preserve concentration'], ['preserve-amount', 'preserve amount per test']]]], '', '— select —')}</select>`),
+        field('Transfer basis <span class="optional" id="basis-required"></span>', `<select data-field="basis" aria-label="transfer basis">${options([['', [['preserve-concentration', 'preserve concentration'], ['preserve-amount', 'preserve amount per test']]]], '', 'select')}</select>`),
         field('Diluent', `<input type="text" data-field="diluent.text" aria-label="diluent"><label class="check"><input type="checkbox" data-field="diluent.notRecorded"> not recorded</label>`),
         field('Minimum reliable transfer volume', `<span class="q">${valueInput('minTransfer.value', '2')}${unitSelect('minTransfer.unit', [['', VOLUME]], 'µL')}</span><p class="help" id="min-suggested"><span class="suggested-dot" aria-hidden="true"></span>suggested, not chosen: 2 µL. Replace it with your pipette's value.</p>`),
         field('Vessel working capacity <span class="optional">optional, no default</span>', `<span class="q">${valueInput('capacity.value')}${unitSelect('capacity.unit', [['', VOLUME]])}</span>`),
@@ -56,7 +56,7 @@ export function rowHtml(c, i) {
         + `<td><span class="q">${valueInput('stock.value', c.stock.value)}${unitSelect('stock.unit', [['', CONCENTRATION]], c.stock.unit, 'conc')}</span></td>`
         + `<td><span class="q"><input type="text" inputmode="decimal" class="num" data-field="establishedVolume.value" value="${esc(ev.notRecorded ? '' : ev.value)}"${ev.notRecorded ? ' disabled' : ''} aria-label="component ${n} established staining volume">${unitSelect('establishedVolume.unit', [['', [...VOLUME, [NOT_RECORDED, 'not recorded']]]], recordedUnit(ev), 'wide')}</span></td>`
         + `<td><span class="q"><input type="text" inputmode="decimal" class="num cells" data-field="establishedCells.value" value="${esc(ec.notRecorded ? '' : ec.value)}"${ec.notRecorded ? ' disabled' : ''} aria-label="component ${n} established cell number">${unitSelect('establishedCells.unit', [['', [...CELLS, [NOT_RECORDED, 'not recorded']]]], recordedUnit(ec), 'wide')}</span></td>`
-        + `<td><select class="prov" data-field="provenance" aria-label="component ${n} provenance">${options([['', [['titrated-here', 'titrated here'], ['vendor', 'vendor recommendation'], [NOT_RECORDED, 'not recorded']]]], c.provenance, '— select —')}</select></td>`
+        + `<td><select class="prov" data-field="provenance" aria-label="component ${n} provenance">${options([['', [['titrated-here', 'titrated here'], ['vendor', 'vendor recommendation'], [NOT_RECORDED, 'not recorded']]]], c.provenance, 'select')}</select></td>`
         + `<td class="transport">entered<button type="button" class="remove" data-action="remove" aria-label="Remove component ${n}">×</button></td>`
         + '</tr>';
 }

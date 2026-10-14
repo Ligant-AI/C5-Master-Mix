@@ -4,7 +4,7 @@ import { PRECISION } from '../engine/format.js';
 const W = 1200;
 const vol = (x) => sig(x, PRECISION.volumes);
 const ratio = (x) => sig(x, PRECISION.ratios);
-const WITHHELD = { 'C5-FL-02': 'withheld: established staining volume not recorded (C5-FL-02)' };
+const WITHHELD = { 'C5-FL-02': 'withheld: established staining volume not recorded (FL-02)' };
 const INK = '#262626';
 const OUTLINE = 'stroke="#333333" stroke-width="1"';
 const TEXT = `fill="${INK}" font-family="Inter, Arial, sans-serif" font-size="11"`;
@@ -38,7 +38,7 @@ function vz01(rec, p) {
         ? `<line data-segment="residual" data-key="vz01-residual-segment" x1="1" y1="6" x2="1" y2="38" stroke="${INK}" stroke-width="2"/>`
         : `<rect data-segment="residual" data-key="vz01-residual-segment" x="0" y="10" width="${xr}" height="24" ${fill(p, 'residual')} ${OUTLINE}/>`;
     return `<div class="vz" id="${p}vz01">`
-        + '<h3 class="sub-h">C5-VZ-01 · Tube composition</h3>'
+        + '<h3 class="sub-h">Tube composition</h3>'
         + `<svg viewBox="0 0 ${W} 64" role="img" aria-label="Tube composition: volume present with the cells (dotted) and volume dispensed (grey)">${PATTERNS(p)}`
         + `${residual}<rect data-segment="dispensed" x="${xr}" y="10" width="${W - xr}" height="24" fill="#d9d9d9" ${OUTLINE}/>`
         + `<text x="2" y="54" ${NUM} data-key="vz01-residual">present with cells ${esc(vol(R))} µL</text>`
@@ -64,7 +64,7 @@ function vz02(rec, codes, p) {
         return `<li data-component="vz02-${c.index}">${swatch(p, compPattern(c.index))}${esc(name(rec, c.index))}: <span class="num" data-key="vcocktail-${c.index}">${esc(vol(c.volumeInCocktail.value))}</span> µL${cc ? ` <span class="codes">${esc(cc.join(' '))}</span>` : ''}</li>`;
     }).join('');
     return `<div class="vz" id="${p}vz02">`
-        + '<h3 class="sub-h">C5-VZ-02 · Cocktail composition</h3>'
+        + '<h3 class="sub-h">Cocktail composition</h3>'
         + `<svg viewBox="0 0 ${W} 42" role="img" aria-label="Cocktail composition, to scale; components alternate plain and lined grey, diluent hatched">${PATTERNS(p)}${segs}</svg>`
         + `<p class="hint">Total component volume ÷ total cocktail volume (antibody fraction) = <span class="num" data-key="antibody-fraction">${esc(ratio(v.antibodyFraction.value))}</span>. No threshold applies.</p>`
         + `<ul class="vz-legend">${legend}<li>${swatch(p, 'diluent')}Diluent: <span class="num" data-key="diluent-total">${esc(vol(v.diluentTotal.value))}</span> µL</li></ul></div>`;
@@ -99,7 +99,7 @@ function vz03(rec, codes, p) {
         return `<g data-component="vz03-${c.index}">${label}${body}</g>`;
     }).join('');
     return `<div class="vz" id="${p}vz03">`
-        + '<h3 class="sub-h">C5-VZ-03 · Concentration ratio strip</h3>'
+        + '<h3 class="sub-h">Concentration ratio strip</h3>'
         + `<div class="vz03-axis">${axis}</div>`
         + `<svg viewBox="0 0 ${W} ${h}" role="img" aria-label="Concentration ratio of each component, logarithmic axis centred on 1">${grid}${rows}</svg></div>`;
 }

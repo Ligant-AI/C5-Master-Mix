@@ -57,6 +57,7 @@ export function evaluateFlags(ctx) {
         raise('C5-FL-12', fl12);
     return { flags, fl08Unevaluated: unevaluated };
 }
+export const flagLabel = (code) => code.replace(/^C5-/, '');
 export const FLAG_TITLES = Object.freeze({
     'C5-FL-01': 'Established at a different staining volume',
     'C5-FL-02': 'Established staining volume not recorded; ratio withheld',
@@ -129,7 +130,7 @@ export function flagTexts(rec) {
             case 'C5-FL-08': {
                 const microlitres = (nL) => Dec.toString(Dec.trimZeros(Dec.shift(Dec.fromString(String(nL)), -3)));
                 const groups = f.volumes.map((g) => `${microlitres(g.nL)} µL: ${g.components.map(name).join(', ')}`);
-                extra = `Established volumes — ${groups.join('; ')}.`;
+                extra = `Established volumes: ${groups.join('; ')}.`;
                 if (f.unevaluated.length)
                     extra += ` Unevaluated (established volume not recorded): ${f.unevaluated.map(name).join('; ')}.`;
                 components = per(f, () => 'named.');
@@ -145,12 +146,12 @@ export function flagTexts(rec) {
             default:
                 break;
         }
-        return { code: f.code, title: FLAG_TITLES[f.code], statement: extra ? `${FLAG_STATEMENTS[f.code]} ${extra}` : FLAG_STATEMENTS[f.code], components };
+        return { code: f.code, label: flagLabel(f.code), title: FLAG_TITLES[f.code], statement: extra ? `${FLAG_STATEMENTS[f.code]} ${extra}` : FLAG_STATEMENTS[f.code], components };
     });
 }
 export function flagNotebookLines(rec) {
     const texts = flagTexts(rec);
     if (!texts.length)
         return ['Flags: none raised.'];
-    return ['Flags', ...texts.flatMap((t) => [`  ${t.code} — ${t.title}. ${t.statement}`, ...t.components.map((c) => `    ${c.text}`)])];
+    return ['Flags', ...texts.flatMap((t) => [`  ${t.label}: ${t.title}. ${t.statement}`, ...t.components.map((c) => `    ${c.text}`)])];
 }

@@ -1,8 +1,7 @@
-# Citation metadata, read by GitHub ("Cite this repository") and by Zenodo.
-# At each release, set version and date-released; add the DOI once archived.
 cff-version: 1.2.0
 message: If you use this software, please cite it as below.
 type: software
+abstract: A deterministic browser tool that works out the volume of each antibody (or other component) and of diluent in one staining master mix, from the staining volume, number of samples and overage you declare. It records every declaration and the transfer basis used, and flags components established at a different staining volume or cell number. Calculations run entirely in your browser.
 title: Master Mix
 authors:
   - family-names: Modi

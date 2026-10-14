@@ -17,9 +17,7 @@ export function renderFooter() {
     return suiteFooter({
         repoUrl: CONFIG.repositoryUrl,
         citations: [citation()],
-        citationFootnote: CONFIG.doi
-            ? 'References are given as text rather than links, so the page itself sends no visit to a publisher.'
-            : 'No identifier is stated: one is minted when the tool is released, and a placeholder would read as a record that does not exist.',
+        citationFootnote: 'References are given as text rather than links, so the page itself sends no visit to a publisher.',
         disclaimer: SCOPE_STATEMENT,
     });
 }

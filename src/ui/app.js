@@ -6,7 +6,7 @@ import { renderHeader, renderFooter, renderColophon } from './chrome.js';
 import { record } from '../engine/result.js';
 import { COMPONENT_CAP } from '../engine/register.js';
 import { panelFieldsHtml, ROW_HEADINGS, emptyComponent, rowHtml, applyRowField, assayConditions } from './form.js';
-import { declarationSummary, flagSummary, cp07Short, flagNames, stateHtml, resultTable, pipettingHtml, derivationHtml, statementsHtml, registerHtml, failuresHtml, notebookText, benchSheetHtml, } from './render.js';
+import { declarationSummary, flagSummary, cp07Short, flagNames, stateHtml, resultTable, pipettingHtml, derivationHtml, whatItDoesHtml, howToUseHtml, howItWorksHtml, whyNotSpreadsheetHtml, limitsHtml, notebookText, benchSheetHtml, } from './render.js';
 import { visualsHtml } from './visuals.js';
 const $ = (id) => document.getElementById(id);
 const panelEl = (name) => document.querySelector(`#panel-fields [data-field="${name}"]`);
@@ -143,7 +143,7 @@ function onRowInput(e) {
 }
 function addComponent() {
     if (rows.length >= COMPONENT_CAP) {
-        $('cap-message').textContent = `Not added: a cocktail here holds at most ${COMPONENT_CAP} components, the count measured to keep every declaration and flag in view (see Constants and conventions).`;
+        $('cap-message').textContent = `Not added: a cocktail here holds at most ${COMPONENT_CAP} components, the count that keeps every declaration and flag in view (see How it works).`;
         return;
     }
     $('cap-message').textContent = '';
@@ -225,10 +225,12 @@ function init() {
     $('favicon').href = markDataUri();
     $('privacy-body').innerHTML = `<p>${esc(PRIVACY_STATEMENT)}</p><p><a href="${esc(CONFIG.privacyUrl)}" target="_blank" rel="noopener noreferrer">Privacy Policy</a></p>`;
     $('privacy-version').textContent = PRIVACY_DATE;
-    $('statements').innerHTML = statementsHtml();
-    $('register').innerHTML = registerHtml();
-    $('failures').innerHTML = failuresHtml();
-    $('object-hint').textContent = 'The machine-readable record of this cocktail: every declaration as typed, every unrounded value with its unit, and every flag with the components it names. Its schema is C5\'s own (ligant-benchtools-c5-master-mix 1.0.0-draft); the tool set has no shared format yet.';
+    $('what-body').innerHTML = whatItDoesHtml();
+    $('use-body').innerHTML = howToUseHtml();
+    $('works-body').innerHTML = howItWorksHtml();
+    $('why-body').innerHTML = whyNotSpreadsheetHtml();
+    $('limits-body').innerHTML = limitsHtml();
+    $('object-hint').textContent = 'The machine-readable record of this cocktail: every declaration as typed, every unrounded value with its unit, and every flag with the components it names. The schema name and version are inside the object.';
     bindCopy($('site-footer'));
     $('mm-form').reset();
     $('panel-fields').innerHTML = panelFieldsHtml();

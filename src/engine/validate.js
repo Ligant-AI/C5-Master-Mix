@@ -158,19 +158,19 @@ export function validate(inputs) {
     }
     for (const c of components) {
         if (c.intended.status === 'ok' && c.intended.kind === KIND.VOLUME && c.stock.status === 'blank') {
-            reject(PENDING.Q2, `${c.name}: not yet supported, pending ruling on question Q2. The intended quantity, ${typed(c.intended)}, is a volume of stock per test and no stock concentration is entered; how its concentration in the assay is reported has not been decided. Nothing is computed for it.`, { component: { row: c.row, label: c.label } });
+            reject(PENDING.Q2, `${c.name}: not supported. The intended quantity, ${typed(c.intended)}, is a volume of stock per test and no stock concentration is entered, so its concentration in the assay is not defined here. Nothing is computed for it. Enter the stock concentration to include it.`, { component: { row: c.row, label: c.label } });
         }
     }
     for (const c of components) {
         if (c.estVolume !== 'not-recorded' && signOf(c.estVolume) !== null && c.estVolume.sign <= 0) {
-            reject(PENDING.Q4, `${c.name}: not yet supported, pending ruling on question Q4. The established staining volume, ${typed(c.estVolume)}, is not above zero, and the specification states no rule for it; the assay staining volume divided by it is not a number. Nothing is computed for it.`, { quantity: 'establishedVolume', component: { row: c.row, label: c.label } });
+            reject(PENDING.Q4, `${c.name}: not supported. The established staining volume, ${typed(c.estVolume)}, is not above zero, so the assay staining volume divided by it is not a number. Nothing is computed for it.`, { quantity: 'establishedVolume', component: { row: c.row, label: c.label } });
         }
         if (c.estCells !== 'not-recorded' && signOf(c.estCells) !== null && c.estCells.sign < 0) {
-            reject(PENDING.Q4, `${c.name}: not yet supported, pending ruling on question Q4. The established cell number, ${typed(c.estCells)}, is below zero, and the specification states no rule for it. Nothing is computed for it.`, { quantity: 'establishedCells', component: { row: c.row, label: c.label } });
+            reject(PENDING.Q4, `${c.name}: not supported. The established cell number, ${typed(c.estCells)}, is below zero; a count of cells cannot be negative. Nothing is computed for it.`, { quantity: 'establishedCells', component: { row: c.row, label: c.label } });
         }
     }
     if (capacity && signOf(capacity) !== null && capacity.sign <= 0) {
-        reject(PENDING.Q4, `Vessel working capacity: not yet supported, pending ruling on question Q4. ${typed(capacity)} is not above zero, and the specification states no rule for it. Nothing is computed for it.`, { quantity: 'capacity' });
+        reject(PENDING.Q4, `Vessel working capacity: not supported. ${typed(capacity)} is not above zero; a vessel cannot hold zero or less. Nothing is computed for it.`, { quantity: 'capacity' });
     }
     let basisRequired = null;
     let svAssay = null;
