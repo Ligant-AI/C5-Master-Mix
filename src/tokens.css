@@ -1,0 +1,57 @@
+:root {
+  color-scheme: light;
+
+  
+  --brand-navy: #1B2A4A;
+  --brand-teal: #0D7C66;
+  --brand-teal-pale: #B5D4CC;
+  --brand-amber: #B8860B;
+  --brand-amber-mark: #E0A416;
+  --brand-offwhite: #FAF7F2;
+  --brand-error: #C0392B;
+
+  
+  --neutral-900: #4F4943;
+  --neutral-700: #6B6357;
+  --neutral-500: #8B8678;
+  --neutral-300: #D8D2C5;
+  --neutral-200: #E5DFD3;
+
+  
+  --page: var(--brand-offwhite);
+  --surface: #FFFFFF;
+  --surface-sunken: var(--brand-offwhite);
+  --surface-inset: var(--neutral-200);
+
+  
+  --text-primary: var(--brand-navy);
+  --text-secondary: var(--neutral-900);
+  --text-muted: var(--neutral-700);
+  --text-caption: var(--neutral-500);
+
+  
+  --border: var(--neutral-300);
+  --border-strong: var(--neutral-500);
+  --grid: var(--neutral-200);
+
+  
+  --series-evidence: var(--brand-teal);
+  --series-decision: var(--brand-amber);
+  --band-fill: rgba(13, 124, 102, .14);
+  --magnitude-1: var(--neutral-300);
+  --magnitude-2: var(--neutral-500);
+  --magnitude-3: var(--neutral-700);
+  --magnitude-4: var(--brand-navy);
+
+  
+  --attention-wash: rgba(184, 134, 11, .1);
+  --error-wash: rgba(192, 57, 43, .08);
+
+  
+  --radius: 10px;
+  --radius-sm: 6px;
+
+  
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
