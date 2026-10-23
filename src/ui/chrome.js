@@ -1,8 +1,9 @@
 import { renderHeader as suiteHeader, renderFooter as suiteFooter, markSvg, escapeHtml as esc } from '@ligant/bench-chrome';
 import { CONFIG } from '../config.js';
+import { SEO } from './seo.js';
 import { SCOPE_STATEMENT } from '../shared/privacy-statement.js';
 export function renderHeader() {
-    return suiteHeader({ path: CONFIG.slug ? `/${CONFIG.slug}/` : null, title: CONFIG.toolTitle, description: CONFIG.tagline });
+    return suiteHeader({ path: CONFIG.slug ? `/${CONFIG.slug}/` : null, title: SEO.h1, description: SEO.lead });
 }
 function citation() {
     const address = CONFIG.slug ? ` ${CONFIG.publicBase.replace('https://', '')}${CONFIG.slug}/` : '';

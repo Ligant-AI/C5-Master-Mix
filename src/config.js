@@ -16,5 +16,4 @@ export const CONFIG = Object.freeze({
     doi: null,
     citationAuthor: 'Modi, A.B.',
     citationYear: '2026',
-    tagline: 'The volume of each antibody and the diluent in a master mix, for the samples, overage, staining volume and cell number you declare. Every value is computed deterministically by arithmetic you can read. No model and no inference is applied to any reported number.',
 });

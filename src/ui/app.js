@@ -8,6 +8,7 @@ import { COMPONENT_CAP } from '../engine/register.js';
 import { panelFieldsHtml, ROW_HEADINGS, emptyComponent, rowHtml, applyRowField, assayConditions } from './form.js';
 import { declarationSummary, flagSummary, cp07Short, flagNames, stateHtml, resultTable, pipettingHtml, derivationHtml, whatItDoesHtml, howToUseHtml, howItWorksHtml, whyNotSpreadsheetHtml, limitsHtml, notebookText, benchSheetHtml, } from './render.js';
 import { visualsHtml } from './visuals.js';
+import { faqHtml } from './seo.js';
 const $ = (id) => document.getElementById(id);
 const panelEl = (name) => document.querySelector(`#panel-fields [data-field="${name}"]`);
 let nextId = 1;
@@ -218,7 +219,6 @@ async function copyNotebook() {
     }
 }
 function init() {
-    document.title = `${CONFIG.publisher} · ${CONFIG.toolTitle}`;
     $('site-header').innerHTML = renderHeader();
     $('site-footer').innerHTML = renderFooter();
     $('colophon').innerHTML = renderColophon();
@@ -230,6 +230,7 @@ function init() {
     $('works-body').innerHTML = howItWorksHtml();
     $('why-body').innerHTML = whyNotSpreadsheetHtml();
     $('limits-body').innerHTML = limitsHtml();
+    $('faq-body').innerHTML = faqHtml();
     $('object-hint').textContent = 'The machine-readable record of this cocktail: every declaration as typed, every unrounded value with its unit, and every flag with the components it names. The schema name and version are inside the object.';
     bindCopy($('site-footer'));
     $('mm-form').reset();

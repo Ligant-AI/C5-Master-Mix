@@ -30,7 +30,7 @@ export const FAILURES = Object.freeze([
     ['Epitope interference', 'between antibodies binding the same or adjacent targets'],
     ['Spillover and spreading error.', 'Panel design is out of scope; an arithmetically correct cocktail may still be a poor panel'],
     ['Cocktail stability.', 'A pre-made cocktail changes with time, temperature and light'],
-    ['Whether each component\'s titration transfers to this assay.', 'Cell number is declared and FL-11 evaluates it, but the titration transfers only if cell type, fixation state, matrix, incubation time and temperature also match. None of the last four is declared or detectable'],
+    ['Whether each component\'s titration transfers to this assay.', 'Cell number is declared and FL-11 evaluates it, but the titration transfers only if cell type, fixation state, matrix, incubation time and temperature also match. None of these five is declared or detectable'],
     ['Loss of activity', 'in any component, from storage, freeze–thaw or age'],
     ['Precipitation or aggregation', 'in the cocktail, including where a component\'s required buffer has been diluted'],
     ['Absence of Fc receptor blocking', ''],

@@ -179,7 +179,7 @@ export function derivationHtml(rec, ui = {}) {
 }
 export function whatItDoesHtml() {
     return '<p>This tool works out how much of each antibody (or other component) and how much diluent to put in one master mix, so that every sample receives what you intended. You declare the volume dispensed per test, the volume already present with the cells, the assay cell number, the number of samples and your overage.</p>'
-        + '<p>It also reports the concentration each component reaches in your assay, how that compares with the concentration it was established at, and every place where a titration may not transfer to this assay. Each value is computed by arithmetic you can read, in the derivation below the result.</p>';
+        + '<p>It also reports the concentration each component reaches in your assay, how that compares with the concentration it was established at, and where a titration may not transfer because the staining volume or the cell number differs from the one it was established at. Each value is computed by arithmetic you can read, in the derivation below the result.</p>';
 }
 export function howToUseHtml() {
     const li = (s) => `<li>${s}</li>`;

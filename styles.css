@@ -200,6 +200,10 @@ label.check.whole-vial input { margin-top: 2px; }
 .state-block.rejected .code { font-family: var(--mono); font-weight: 700; margin-right: 6px; }
 
 #privacy .prose p { color: var(--text-primary); }
+
+#faq h3 { font-size: 13px; margin: 0 0 6px; color: var(--text-primary); }
+#faq h3:not(:first-child) { margin-top: 14px; }
+#faq p { color: var(--text-secondary); font-size: 13px; line-height: 1.6; max-width: 110ch; }
 .prose td sub { font-size: 9px; }
 
 .subsection { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
